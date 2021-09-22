@@ -1,0 +1,53 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>ip2region</artifactId>
+  <version>1.0.0</version>
+
+  <parent>
+    <groupId>cn.404z</groupId>
+    <artifactId>parent</artifactId>
+    <version>1.1.0</version>
+  </parent>
+
+  <name>${project.artifactId}</name>
+  <description>IP Address To Region IP地址转区域</description>
+  <url>https://github.com/ALI1416/ip2region</url>
+
+  <scm>
+    <url>git@github.com:ALI1416/ip2region.git</url>
+    <connection>scm:${project.scm.url}</connection>
+    <developerConnection>scm:${project.scm.url}</developerConnection>
+  </scm>
+
+  <dependencies>
+    <!-- 额外依赖 -->
+    <dependency>
+      <groupId>org.lionsoul</groupId>
+      <artifactId>ip2region</artifactId>
+      <version>1.7.2</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.32</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>1.2.6</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.6</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+</project>
