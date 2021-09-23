@@ -102,6 +102,7 @@ public class Ip2Region {
                             return;
                         }
                         ip2RegionSearcher = new DbSearcher(new DbConfig(), bytes);
+                        log.info("加载数据文件成功，总共" + String.format("%.2f", bytes.length / (float) (1024 * 1024)) + "MB");
                     } catch (Exception e) {
                         log.error("DbSearcher实例初始化异常", e);
                     }
