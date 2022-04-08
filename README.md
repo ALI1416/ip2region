@@ -23,10 +23,10 @@
 
 ## 依赖导入
 最新版本
-[![Maven central](https://maven-badges.herokuapp.com/maven-central/cn.404z/ip2region/badge.svg)](https://maven-badges.herokuapp.com/maven-central/cn.404z/ip2region)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/cn.404z/ip2region/badge.svg)](https://maven-badges.herokuapp.com/maven-central/cn.404z/ip2region)
 
 `org.lionsoul:ip2region`最新版本
-[![Maven central](https://maven-badges.herokuapp.com/maven-central/org.lionsoul/ip2region/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.lionsoul/ip2region)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.lionsoul/ip2region/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.lionsoul/ip2region)
 
 maven
 ```xml
@@ -34,7 +34,7 @@ maven
 <dependency>
     <groupId>cn.404z</groupId>
     <artifactId>ip2region</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 </dependency>
 <dependency>
     <groupId>org.lionsoul</groupId>
@@ -43,31 +43,19 @@ maven
 </dependency>
 <!-- 额外依赖(运行未报错，不需要加) -->
 <dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>slf4j-api</artifactId>
-    <version>1.7.32</version>
-</dependency>
-<dependency>
-    <groupId>ch.qos.logback</groupId>
-    <artifactId>logback-core</artifactId>
-    <version>1.2.6</version>
-</dependency>
-<dependency>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-classic</artifactId>
-    <version>1.2.6</version>
+    <version>1.2.11</version>
 </dependency>
 ```
 
 gradle
 ```groovy
 // 必须依赖
-implementation 'cn.404z:ip2region:1.0.0'
+implementation 'cn.404z:ip2region:1.1.0'
 implementation 'org.lionsoul:ip2region:1.7.2'
 // 额外依赖(运行未报错，不需要加)
-implementation 'org.slf4j:slf4j-api:1.7.32'
-implementation 'ch.qos.logback:logback-core:1.2.6'
-implementation 'ch.qos.logback:logback-classic:1.2.6'
+implementation 'ch.qos.logback:logback-classic:1.2.11'
 ```
 
 ## 使用方法
