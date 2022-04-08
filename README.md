@@ -3,20 +3,20 @@
 ## 项目地址
 [Github源码](https://github.com/ALI1416/ip2region)
 [Gitee源码](https://gitee.com/ALI1416/ip2region)
-[![Build Status](https://travis-ci.com/ALI1416/ip2region.svg?branch=master)](https://travis-ci.com/ALI1416/ip2region)
+[![Build Status](https://travis-ci.com/ALI1416/ip2region.svg?branch=master)](https://app.travis-ci.com/ALI1416/ip2region)
 
 [Github测试](https://github.com/ALI1416/ip2region-test)
 [Gitee测试](https://gitee.com/ALI1416/ip2region-test)
-[![Build Status](https://travis-ci.com/ALI1416/ip2region-test.svg?branch=master)](https://travis-ci.com/ALI1416/ip2region-test)
+[![Build Status](https://travis-ci.com/ALI1416/ip2region-test.svg?branch=master)](https://app.travis-ci.com/ALI1416/ip2region-test)
 
 ### SpringBoot自动配置项目地址
 [Github源码](https://github.com/ALI1416/ip2region-spring-boot-autoconfigure)
 [Gitee源码](https://gitee.com/ALI1416/ip2region-spring-boot-autoconfigure)
-[![Build Status](https://travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure.svg?branch=master)](https://travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure)
+[![Build Status](https://travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure.svg?branch=master)](https://app.travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure)
 
 [Github测试](https://github.com/ALI1416/ip2region-spring-boot-autoconfigure-test)
 [Gitee测试](https://gitee.com/ALI1416/ip2region-spring-boot-autoconfigure-test)
-[![Build Status](https://travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure-test.svg?branch=master)](https://travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure-test)
+[![Build Status](https://travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure-test.svg?branch=master)](https://app.travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure-test)
 
 ## 简介
 本工具类使用org.lionsoul:ip2region工具类作为基础，简化了操作，把方法改写成了静态类，添加了区域实体，以及支持SpringBoot自动配置。
