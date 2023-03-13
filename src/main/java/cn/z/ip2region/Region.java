@@ -1,8 +1,6 @@
 package cn.z.ip2region;
 
 
-import org.lionsoul.ip2region.DataBlock;
-
 /**
  * <h1>区域</h1>
  *
@@ -18,23 +16,19 @@ public class Region {
     /**
      * 国家
      */
-    private String country = "";
+    private String country;
     /**
      * 省份
      */
-    private String province = "";
+    private String province;
     /**
      * 城市
      */
-    private String city = "";
-    /**
-     * 区域
-     */
-    private String area = "";
+    private String city;
     /**
      * isp
      */
-    private String isp = "";
+    private String isp;
 
     /**
      * 构造函数
@@ -45,31 +39,15 @@ public class Region {
 
     /**
      * 构造函数
-     *
-     * @param dataBlock dataBlock
-     * @see DataBlock
      */
-    public Region(DataBlock dataBlock) {
-        if (dataBlock != null && dataBlock.getRegion() != null) {
-            // 国家|区域|省份|城市|ISP
-            String[] s = dataBlock.getRegion().split("\\|");
-            if (s.length == 5) {
-                if (!"0".equals(s[0])) {
-                    country = s[0];
-                }
-                if (!"0".equals(s[1])) {
-                    area = s[1];
-                }
-                if (!"0".equals(s[2])) {
-                    province = s[2];
-                }
-                if (!"0".equals(s[3])) {
-                    city = s[3];
-                }
-                if (!"0".equals(s[4])) {
-                    isp = s[4];
-                }
-            }
+    public Region(String region) {
+        // 国家|省份|城市|ISP
+        String[] s = region.split("\\|");
+        if (s.length == 4) {
+            country = s[0];
+            province = s[1];
+            city = s[2];
+            isp = s[3];
         }
     }
 
@@ -97,14 +75,6 @@ public class Region {
         this.city = city;
     }
 
-    public String getArea() {
-        return area;
-    }
-
-    public void setArea(String area) {
-        this.area = area;
-    }
-
     public String getIsp() {
         return isp;
     }
@@ -115,6 +85,7 @@ public class Region {
 
     @Override
     public String toString() {
-        return "Region{" + "country='" + country + '\'' + ", province='" + province + '\'' + ", city='" + city + '\'' + ", area='" + area + '\'' + ", isp='" + isp + '\'' + '}';
+        return "Region{" + "country='" + country + '\'' + ", province='" + province + '\'' + ", city='" + city + '\'' + ", isp='" + isp + '\'' + '}';
     }
+
 }

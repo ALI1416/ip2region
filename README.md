@@ -19,7 +19,16 @@
 [![Build Status](https://travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure-test.svg?branch=master)](https://app.travis-ci.com/ALI1416/ip2region-spring-boot-autoconfigure-test)
 
 ## 简介
-本工具类使用org.lionsoul:ip2region工具类作为基础，简化了操作，把方法改写成了静态类，添加了区域实体，以及支持SpringBoot自动配置。
+本工具类使用`org.lionsoul:ip2region`工具类作为基础，简化了操作，把方法改写成了静态类，并添加了区域实体，以及支持SpringBoot自动配置。
+
+## 数据文件生成方法
+
+1. 下载数据文件<https://gitee.com/lionsoul/ip2region/blob/master/data/ip.merge.txt>
+2. 进行数据转换<https://gitee.com/ALI1416/ip2region-test/blob/master/src/main/java/com/demo/Convert.java>
+3. 编译项目并生成jar程序<https://gitee.com/lionsoul/ip2region/tree/master/maker/java>
+4. 生成xdb文件`java -jar E:\ip2region-maker-1.0.0.jar --src="E:\ip2region.txt" --dst="E:\ip2region.xdb"`
+5. 压缩xdb文件成zip格式(xdb文件位于根目录，文件名任意)
+6. 修改zip后缀成zxdb(可以进行cdn加速，zip格式无法加速)
 
 ## 依赖导入
 最新版本
@@ -34,65 +43,56 @@ maven
 <dependency>
     <groupId>cn.404z</groupId>
     <artifactId>ip2region</artifactId>
-    <version>1.1.0</version>
+    <version>2.0.0</version>
 </dependency>
 <dependency>
     <groupId>org.lionsoul</groupId>
     <artifactId>ip2region</artifactId>
-    <version>1.7.2</version>
+    <version>2.7.0</version>
 </dependency>
 <!-- 额外依赖(运行未报错，不需要加) -->
 <dependency>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-classic</artifactId>
-    <version>1.2.11</version>
+    <version>1.4.5</version>
 </dependency>
-```
-
-gradle
-```groovy
-// 必须依赖
-implementation 'cn.404z:ip2region:1.1.0'
-implementation 'org.lionsoul:ip2region:1.7.2'
-// 额外依赖(运行未报错，不需要加)
-implementation 'ch.qos.logback:logback-classic:1.2.11'
 ```
 
 ## 使用方法
 ### 通过url初始化
 代码
 ```java
-Ip2Region.initByUrl("https://cdn.jsdelivr.net/gh/lionsoul2014/ip2region/data/ip2region.db");
+Ip2Region.initByUrl("https://cdn.jsdelivr.net/gh/ali1416/ip2region-test/data/ip2region.zxdb");
 System.out.print(Ip2Region.parse("202.108.22.5"));
 ```
 
 结果
 ```txt
-[main] INFO cn.z.ip2region.Ip2Region - 初始化，URL路径为https://cdn.jsdelivr.net/gh/lionsoul2014/ip2region/data/ip2region.db
-[main] INFO cn.z.ip2region.Ip2Region - 加载数据文件成功，总共8.93MB
-Region{country='中国', province='北京', city='北京', area='', isp='联通'}
+[main] INFO cn.z.ip2region.Ip2Region - 初始化，URL路径为：https://cdn.jsdelivr.net/gh/ali1416/ip2region-test/data/ip2region.zxdb
+[main] INFO cn.z.ip2region.Ip2Region - 加载数据成功！
+Region{country='中国', province='北京', city='北京市', isp='联通'}
 ```
 
 ### 通过文件初始化
 代码
 ```java
-Ip2Region.initByFile("/file/ip2region/data.db");
+Ip2Region.initByFile("E:/ip2region.zip");
 System.out.print(Ip2Region.parse("202.108.22.5"));
 ```
 
 结果
 ```txt
-[main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为/file/ip2region/data.db
-[main] INFO cn.z.ip2region.Ip2Region - 加载数据文件成功，总共8.93MB
-Region{country='中国', province='北京', city='北京', area='', isp='联通'}
+[main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zip
+[main] INFO cn.z.ip2region.Ip2Region - 加载数据成功！
+Region{country='中国', province='北京', city='北京市', isp='联通'}
 ```
 
-### 通过bytes初始化
+### 通过inputStream初始化
 代码
 ```java
 try {
-    Ip2Region.init(Files.readAllBytes((new File("/file/ip2region/data.db")).toPath()));
-} catch (IOException e) {
+    Ip2Region.init(new FileInputStream("E:/ip2region.zip"));
+} catch (Exception e) {
     e.printStackTrace();
 }
 System.out.print(Ip2Region.parse("202.108.22.5"));
@@ -100,41 +100,40 @@ System.out.print(Ip2Region.parse("202.108.22.5"));
 
 结果
 ```txt
-[main] INFO cn.z.ip2region.Ip2Region - 加载数据文件成功，总共8.93MB
-Region{country='中国', province='北京', city='北京', area='', isp='联通'}
+[main] INFO cn.z.ip2region.Ip2Region - 加载数据成功！
+Region{country='中国', province='北京', city='北京市', isp='联通'}
 ```
 
 ### 初始化多次
 代码
 ```java
-Ip2Region.initByFile("/file/ip2region/data.db");
-Ip2Region.initByFile("/file/ip2region/data.db");
+Ip2Region.initByFile("E:/ip2region.zip");
+Ip2Region.initByFile("E:/ip2region.zip");
 System.out.print(Ip2Region.parse("202.108.22.5"));
 ```
 
 结果
 ```txt
-[main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为/file/ip2region/data.db
-[main] INFO cn.z.ip2region.Ip2Region - 加载数据文件成功，总共8.93MB
+[main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zip
+[main] INFO cn.z.ip2region.Ip2Region - 加载数据成功！
 [main] WARN cn.z.ip2region.Ip2Region - 已经初始化过了，不可重复初始化！
-Region{country='中国', province='北京', city='北京', area='', isp='联通'}
+Region{country='中国', province='北京', city='北京市', isp='联通'}
 ```
 
 ### 初始化异常
 代码
 ```java
-Ip2Region.initByFile("/file/ip2region/data");
+Ip2Region.initByFile("E:/ip2region");
 System.out.print(Ip2Region.parse("202.108.22.5"));
 ```
 
 结果
 ```txt
-[main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为/file/ip2region/data
-[main] ERROR cn.z.ip2region.Ip2Region - 文件读取异常
-java.nio.file.NoSuchFileException: \file\ip2region\data
-[main] ERROR cn.z.ip2region.Ip2Region - memorySearch查询异常
-java.lang.NullPointerException: null
-Region{country='', province='', city='', area='', isp=''}
+[main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region
+[main] ERROR cn.z.ip2region.Ip2Region - 文件异常！
+java.io.FileNotFoundException: E:\ip2region (系统找不到指定的文件。)
+[main] ERROR cn.z.ip2region.Ip2Region - 未初始化！
+null
 ```
 
 ## 许可证
