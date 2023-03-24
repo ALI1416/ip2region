@@ -34,7 +34,6 @@ public class Region {
      * 构造函数
      */
     public Region() {
-
     }
 
     /**
