@@ -2,6 +2,7 @@ package cn.z.ip2region;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.*;
@@ -36,8 +37,13 @@ class DataGenerationTest {
         String txtPath = "E:/ip.merge.txt";
         String dbPath = "E:/ip2region.db";
         String zdbPath = "E:/ip2region.zdb";
-        txt2dat(txtPath, dbPath);
+        txt2db(txtPath, dbPath);
         compress(dbPath, zdbPath);
+    }
+
+    @Test
+    void test00Txt2Db() throws Exception {
+        txt2db("E:/ip.merge.txt", "E:/ip2region.db");
     }
 
     // @Test
@@ -52,13 +58,35 @@ class DataGenerationTest {
     /**
      * txt文件转db文件
      */
-    void txt2dat(String txtPath, String dbPath) throws Exception {
+    void txt2db(String txtPath, String dbPath) throws Exception {
+        // 头部区 CRC32校验和 指针
+        final int headerCrc32Ptr = 0;
+        // 头部区 版本号 指针
+        final int headerVersionPtr = headerCrc32Ptr + 4;
+        // 头部区 记录区指针 指针
+        final int headerRecordAreaPtrPtr = headerVersionPtr + 4;
+        // 头部区 二级索引区指针 指针
+        final int headerVector2AreaPtrPtr = headerRecordAreaPtrPtr + 4;
+        // 头部区 CRC32校验和 值
+        int headerCrc32Value;
+        // 头部区 版本号 值
+        int headerVersionValue;
+        // 头部区 记录区指针 值
+        final int headerRecordAreaPtrValue = headerVector2AreaPtrPtr + 4;
+        // 头部区 二级索引区指针 值
+        int headerVector2AreaPtrValue;
+
+        // 二级索引 个数
+        final int vector2Size = 256 * 256 + 1;
+
         // 记录区Set
         Set<String> recordSet = new TreeSet<>((o1, o2) -> Collator.getInstance(Locale.CHINA).compare(o1, o2));
         // 记录区Map<记录值hash,Record>
         Map<Integer, Record> recordMap = new LinkedHashMap<>();
-        // 索引区List[{起始IP地址结束IP地址,国家|省份|城市|ISP}]
+        // 索引区List[{起始IP地址,结束IP地址,国家|省份|城市|ISP}]
         List<String[]> vectorList = new ArrayList<>();
+        // 索引区Map<索引指针,vectorList的下标>
+        Map<Integer, Integer> vectorMap = new LinkedHashMap<>();
         /* 读取文件 */
         BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
         String line = bufferedReader.readLine();
@@ -75,37 +103,41 @@ class DataGenerationTest {
         }
         bufferedReader.close();
         /* 计算文件大小 */
-        // 版本号4字节，索引偏移量4字节
-        int size = 8;
+        int size = headerRecordAreaPtrValue;
         // 记录区
         for (String s : recordSet) {
             // java的String为UTF16LE是变长4字节，而UTF8是变长3字节
             byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
             recordMap.put(s.hashCode(), new Record(size, bytes));
-            // 每条记录以0x00结尾
-            size += (bytes.length + 1);
         }
-        // 记录获取索引偏移量
-        int indicesOffset = size;
+        // 头部区 二级索引区指针 值
+        headerVector2AreaPtrValue = size;
+        // 二级索引区
+        size += vector2Size * 4;
         // 索引区
-        size += vectorList.size() * 9;
+        size += vectorList.size() * 8;
         /* 创建二进制文件 */
         ByteBuffer buffer = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
-        // 版本号
-        // buffer.put(version.getBytes(StandardCharsets.UTF_8));
-        // 索引偏移量
-        buffer.putInt(indicesOffset);
         // 记录区
+        buffer.position(headerRecordAreaPtrValue);
         for (Record r : recordMap.values()) {
             buffer.put(r.getBytes());
         }
         // 索引区
-        // vectorList.forEach((tel, s) -> {
-        //     // 手机号码前7位
-        //     buffer.putInt(tel);
-        //     // 偏移量
-        //     buffer.putInt(recordMap.get(s[0].hashCode()).getOffset());
-        // });
+        buffer.position(headerVector2AreaPtrValue + vector2Size * 4);
+        for (int i = 0; i < vectorList.size(); i++) {
+            vectorMap.put(buffer.position(), i);
+            String[] s = vectorList.get(i);
+            // 起始IP地址后2段
+            buffer.put(last2SegmentsIp2Bytes(s[0]));
+            // 结束IP地址后2段
+            buffer.put(last2SegmentsIp2Bytes(s[1]));
+            // 记录指针
+            buffer.putInt(recordMap.get(s[2].hashCode()).getOffset());
+        }
+        // 二级索引区
+        buffer.position(headerVector2AreaPtrValue);
+
         /* 导出文件 */
         FileOutputStream fileOutputStream = new FileOutputStream(dbPath);
         fileOutputStream.write(buffer.array());
@@ -113,6 +145,13 @@ class DataGenerationTest {
         fileOutputStream.close();
     }
 
+    /**
+     * IP地址后2段转byte[]
+     */
+    static byte[] last2SegmentsIp2Bytes(String ip) {
+        String[] s = ip.split("\\.");
+        return new byte[]{(byte) Integer.parseInt(s[2]), (byte) Integer.parseInt(s[3])};
+    }
 
     /**
      * 记录
@@ -126,6 +165,10 @@ class DataGenerationTest {
          * byte[]
          */
         private byte[] bytes;
+        /**
+         * 长度
+         */
+        private int length;
 
         public Record() {
         }
@@ -133,6 +176,7 @@ class DataGenerationTest {
         public Record(int offset, byte[] bytes) {
             this.offset = offset;
             this.bytes = bytes;
+            this.length = bytes.length;
         }
 
         public int getOffset() {
@@ -151,9 +195,17 @@ class DataGenerationTest {
             this.bytes = bytes;
         }
 
+        public int getLength() {
+            return length;
+        }
+
+        public void setLength(int length) {
+            this.length = length;
+        }
+
         @Override
         public String toString() {
-            return "Record{" + "offset=" + offset + ", bytes=" + new String(bytes) + '}';
+            return "Record{" + "offset=" + offset + ", bytes=" + new String(bytes) + ", length=" + length + '}';
         }
     }
 

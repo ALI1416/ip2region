@@ -3,7 +3,7 @@
 - 当前版本：`2022-12-07`
 - 数据文件来源：<https://github.com/lionsoul2014/ip2region>
 - 查看最新版本：<https://github.com/lionsoul2014/ip2region/commits/master/data/ip.merge.txt>
-- 数据文件下载：<https://github.com/lionsoul2014/ip2region/blob/master/data/ip.merge.txt>
+- 数据文件下载：<https://gitee.com/lionsoul/ip2region/blob/master/data/ip.merge.txt>
 - 本项目所使用的数据文件生成方法java代码：[点击查看](../src/test/java/cn/z/ip2region/DataGenerationTest.java)
 
 ## 数据文件设计
@@ -18,11 +18,11 @@
 
 ### 头部区
 
-| 中文名   | CRC32校验和 | 版本号  | 记录区指针 | 二级索引区指针 | 索引区指针 | 扩展 |
-| -------- | ----------- | ------- | ---------- | -------------- | ---------- | ---- |
-| 英文名   | crc32       | version | recordPtr  | vector2Ptr     | vectorPtr  | ...  |
-| 长度     | 4           | 4       | 4          | 4              | 4          | ...  |
-| 数据类型 | int         | int     | int        | int            | int        | ...  |
+| 中文名   | CRC32校验和 | 版本号  | 记录区指针         | 二级索引区指针 | 扩展 |
+| -------- | ----------- | ------- |---------------| -------------- | ---- |
+| 英文名   | crc32       | version | recordAreaPtr | vector2AreaPtr     | ...  |
+| 长度     | 4           | 4       | 4             | 4              | ...  |
+| 数据类型 | int         | int     | int           | int            | ...  |
 
 - `头部区`可以进行拓展
 - `CRC32校验和`是除去前`4`字节，对所有数据进行校验
@@ -44,11 +44,11 @@
 
 每条二级索引格式如下(二级索引个数为`256x256+1`个)：
 
-| 中文名   | 索引区指针 |
-| -------- | ---------- |
-| 英文名   | vectorPtr  |
-| 长度     | 4          |
-| 数据类型 | int        |
+| 中文名   | 索引指针 |
+| -------- | --------- |
+| 英文名   | vectorPtr |
+| 长度     | 4         |
+| 数据类型 | int       |
 
 - 第一条是IP地址前2位为`0.0`的二级索引
 - 倒数第二条是IP地址前2位为`255.255`的二级索引
@@ -58,11 +58,11 @@
 
 每条索引格式如下(个数根据数据文件而定)：
 
-| 中文名   | 起始IP地址 | 结束IP地址 | 记录区指针 |
-| -------- | ---------- | ---------- | ---------- |
-| 英文名   | ipStart    | ipEnd      | recordPtr  |
-| 长度     | 2          | 2          | 4          |
-| 数据类型 | short      | short      | int        |
+| 中文名   | 起始IP地址 | 结束IP地址 | 记录指针 |
+| -------- | ---------- | ---------- | --------- |
+| 英文名   | ipStart    | ipEnd      | recordPtr |
+| 长度     | 2          | 2          | 4         |
+| 数据类型 | short      | short      | int       |
 
 - `起始IP地址`和`结束IP地址`为后2位转为short型
 
