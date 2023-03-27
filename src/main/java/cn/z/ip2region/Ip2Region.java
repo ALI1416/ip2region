@@ -9,6 +9,8 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -37,13 +39,13 @@ public class Ip2Region {
      */
     private static ByteBuffer buffer;
     /**
-     * 索引偏移量
+     * 记录区指针
      */
-    private static int indicesOffset;
+    private static int recordAreaPtr;
     /**
-     * 索引偏移量最大值
+     * 二级索引区指针
      */
-    private static int indicesOffsetMax;
+    private static int vector2AreaPtr;
 
     private Ip2Region() {
     }
@@ -78,7 +80,7 @@ public class Ip2Region {
 
     /**
      * 初始化实例通过URL<br>
-     * 可以用：<code>https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zxdb</code>
+     * 可以用：<code>https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdb</code>
      *
      * @param url URL
      */
@@ -99,7 +101,7 @@ public class Ip2Region {
     /**
      * 初始化实例
      *
-     * @param inputStream 压缩的zxdb输入流
+     * @param inputStream 压缩的zdb输入流
      */
     public static void init(InputStream inputStream) {
         if (notInstantiated) {
@@ -118,11 +120,30 @@ public class Ip2Region {
                         // 数据
                         buffer = ByteBuffer.wrap(inputStream2bytes(zipInputStream)) //
                                 .asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
-                        // log.info("数据加载成功，版本号为：{}", version);
+                        int crc32OriginValue = buffer.getInt();
+                        CRC32 crc32 = new CRC32();
+                        crc32.update(buffer);
+                        if (crc32OriginValue != (int) crc32.getValue()) {
+                            log.error("数据文件校验错误！");
+                            throw new Ip2RegionException("数据文件校验错误！");
+                        }
+                        buffer.position(4);
+                        int version = buffer.getInt();
+                        recordAreaPtr = buffer.getInt();
+                        vector2AreaPtr = buffer.getInt();
+                        log.info("数据加载成功，版本号为：{}", version);
                         notInstantiated = false;
                     } catch (Exception e) {
                         log.error("初始化异常！", e);
                         throw new Ip2RegionException("初始化异常！");
+                    } finally {
+                        if (inputStream != null) {
+                            try {
+                                inputStream.close();
+                            } catch (Exception e) {
+                                log.error("关闭异常！", e);
+                            }
+                        }
                     }
                 } else {
                     log.warn("已经初始化过了，不可重复初始化！");
@@ -154,8 +175,28 @@ public class Ip2Region {
             log.error("未初始化！");
             return null;
         }
-        return null;
+        // 二级索引区
+        buffer.position(vector2AreaPtr + (int) (ip >>> 32));
+        int vectorStart = buffer.getInt();
+        int vectorEnd = buffer.getInt();
+
+        // 索引区
+        int recordPtr;
+        // if (start == end) {
+        buffer.position(vectorStart);
+        recordPtr = buffer.getInt();
+        // }
+        // 二分查找
+        // int ip2 = (int) ip & 0xFFFF;
+
+        // 记录区
+        buffer.position(recordPtr);
+        int recordValueLength = buffer.get() & 0xFF;
+        byte[] recordValue = new byte[recordValueLength];
+        buffer.get(recordValue);
+        return new Region(new String(recordValue, StandardCharsets.UTF_8));
     }
+
 
     /**
      * ip2long

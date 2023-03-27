@@ -2,7 +2,6 @@ package cn.z.ip2region;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.FileInputStream;
@@ -44,7 +43,7 @@ class Ip2RegionTest {
     // @Test
     void test01InitByFile() {
         Ip2Region.initByFile("E:/ip2region.zip");
-        log.info(String.valueOf(Ip2Region.parse("18754710000")));
+        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
         // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zip
         // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
         // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{province='山东', city='济宁', zipCode='272000',
@@ -60,7 +59,7 @@ class Ip2RegionTest {
             Ip2Region.init(new FileInputStream("E:/ip2region.zip"));
         } catch (Exception ignore) {
         }
-        log.info(String.valueOf(Ip2Region.parse("18754710000")));
+        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
         // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
         // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{province='山东', city='济宁', zipCode='272000',
         // areaCode='0537', isp='移动'}
@@ -73,7 +72,7 @@ class Ip2RegionTest {
     void test03InitMore() {
         Ip2Region.initByFile("E:/ip2region.zip");
         Ip2Region.initByFile("E:/ip2region.zip");
-        log.info(String.valueOf(Ip2Region.parse("18754710000")));
+        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
         // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zip
         // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
         // [main] WARN cn.z.ip2region.Ip2Region - 已经初始化过了，不可重复初始化！
@@ -87,7 +86,7 @@ class Ip2RegionTest {
     // @Test
     void test04InitException() {
         Ip2Region.initByFile("E:/ip2region");
-        log.info(String.valueOf(Ip2Region.parse("18754710000")));
+        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
         // [main]  INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region
         // [main] ERROR cn.z.ip2region.Ip2Region - 初始化文件异常！
         // java.io.FileNotFoundException: E:\ip2region (系统找不到指定的文件。)
