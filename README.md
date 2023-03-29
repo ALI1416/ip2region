@@ -14,7 +14,7 @@
 
 ## 简介
 
-本项目根据[ip2region(lionsoul2014/ip2region)](https://github.com/lionsoul2014/ip2region)重构，并加上了数据文件压缩后从外部导入、静态方法调用等，以及支持[SpringBoot自动配置](https://github.com/ALI1416/ip2region-spring-boot-autoconfigure)
+本项目根据[lionsoul2014/ip2region](https://github.com/lionsoul2014/ip2region)重构，并加上了数据文件压缩后从外部导入、静态方法调用等，以及支持[SpringBoot自动配置](https://github.com/ALI1416/ip2region-spring-boot-autoconfigure)
 
 ## 数据文件
 
@@ -27,7 +27,7 @@
 <dependency>
     <groupId>cn.404z</groupId>
     <artifactId>ip2region</artifactId>
-    <version>2.0.0</version>
+    <version>3.0.0</version>
 </dependency>
 <dependency>
     <groupId>ch.qos.logback</groupId>
@@ -132,9 +132,10 @@ null
 
 ## 交流
 
-QQ：1416978277  
-微信：1416978277  
-支付宝：1416978277@qq.com  
+- [x] QQ：`1416978277`
+- [x] 微信：`1416978277`
+- [x] 支付宝：`1416978277@qq.com`
+
 ![交流](https://cdn.jsdelivr.net/gh/ALI1416/ALI1416/image/contact.png)
 
 ## 赞助

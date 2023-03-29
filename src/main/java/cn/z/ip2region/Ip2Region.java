@@ -39,13 +39,13 @@ public class Ip2Region {
      */
     private static ByteBuffer buffer;
     /**
-     * 记录区指针
-     */
-    private static int recordAreaPtr;
-    /**
      * 二级索引区指针
      */
     private static int vector2AreaPtr;
+    /**
+     * 索引区指针
+     */
+    private static int vectorAreaPtr;
 
     private Ip2Region() {
     }
@@ -111,7 +111,7 @@ public class Ip2Region {
                         if (inputStream == null) {
                             throw new Ip2RegionException("数据文件为空！");
                         }
-                        // 解压并提取文件
+                        // 解压
                         ZipInputStream zipInputStream = new ZipInputStream(inputStream);
                         ZipEntry entry = zipInputStream.getNextEntry();
                         if (entry == null) {
@@ -124,13 +124,13 @@ public class Ip2Region {
                         CRC32 crc32 = new CRC32();
                         crc32.update(buffer);
                         if (crc32OriginValue != (int) crc32.getValue()) {
-                            log.error("数据文件校验错误！");
                             throw new Ip2RegionException("数据文件校验错误！");
                         }
                         buffer.position(4);
                         int version = buffer.getInt();
-                        recordAreaPtr = buffer.getInt();
+                        buffer.position(buffer.position() + 4);
                         vector2AreaPtr = buffer.getInt();
+                        vectorAreaPtr = buffer.getInt();
                         log.info("数据加载成功，版本号为：{}", version);
                         notInstantiated = false;
                     } catch (Exception e) {
@@ -161,7 +161,7 @@ public class Ip2Region {
      * @return Region
      */
     public static Region parse(String ip) {
-        return parse(ip2long(ip));
+        return innerParse(ip2long(ip));
     }
 
     /**
@@ -171,32 +171,73 @@ public class Ip2Region {
      * @return Region
      */
     public static Region parse(long ip) {
+        if (ip < 0 || ip > 0xFFFFFFFFL) {
+            throw new Ip2RegionException("IP地址" + ip + "不合法！");
+        }
+        return innerParse(ip);
+    }
+
+    /**
+     * 解析IP的区域
+     *
+     * @param ip IP地址(long)
+     * @return Region
+     */
+    private static Region innerParse(long ip) {
         if (notInstantiated) {
             log.error("未初始化！");
             return null;
         }
+
         // 二级索引区
-        buffer.position(vector2AreaPtr + (int) (ip >>> 32));
-        int vectorStart = buffer.getInt();
-        int vectorEnd = buffer.getInt();
+        buffer.position(vector2AreaPtr + (((int) (ip >>> 16)) << 2));
+        int left = buffer.getInt();
+        int right = buffer.getInt();
 
         // 索引区
-        int recordPtr;
-        // if (start == end) {
-        buffer.position(vectorStart);
-        recordPtr = buffer.getInt();
-        // }
-        // 二分查找
-        // int ip2 = (int) ip & 0xFFFF;
+        if (left == right || left == right - 8) {
+            buffer.position(left + 4);
+        } else {
+            right -= 8;
+            // 二分查找
+            int ipSegments = (int) ip & 0xFFFF;
+            while (left <= right) {
+                int mid = align((left + right) / 2);
+                // 查找是否匹配到
+                buffer.position(mid);
+                int startAndEnd = buffer.getInt();
+                int ipSegmentsStart = startAndEnd & 0xFFFF;
+                int ipSegmentsEnd = startAndEnd >>> 16;
+                if (ipSegments < ipSegmentsStart) {
+                    right = mid - 8;
+                } else if (ipSegments > ipSegmentsEnd) {
+                    left = mid + 8;
+                } else {
+                    break;
+                }
+            }
+        }
 
         // 记录区
-        buffer.position(recordPtr);
-        int recordValueLength = buffer.get() & 0xFF;
-        byte[] recordValue = new byte[recordValueLength];
+        buffer.position(buffer.getInt());
+        byte[] recordValue = new byte[buffer.get() & 0xFF];
         buffer.get(recordValue);
         return new Region(new String(recordValue, StandardCharsets.UTF_8));
     }
 
+    /**
+     * 字节对齐
+     */
+    private static int align(int pos) {
+        int remain = (pos - vectorAreaPtr) % 8;
+        if (pos - vectorAreaPtr < 8) {
+            return pos - remain;
+        } else if (remain != 0) {
+            return pos + 8 - remain;
+        } else {
+            return pos;
+        }
+    }
 
     /**
      * ip2long
@@ -212,7 +253,7 @@ public class Ip2Region {
             if (v < 0 || v > 255) {
                 throw new Ip2RegionException("IP地址" + ip + "不合法！");
             }
-            address |= (v << 8 * (4 - i));
+            address |= (v << 8 * (3 - i));
         }
         return address;
     }

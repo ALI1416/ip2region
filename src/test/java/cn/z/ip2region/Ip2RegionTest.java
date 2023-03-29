@@ -2,9 +2,10 @@ package cn.z.ip2region;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
-import java.io.FileInputStream;
+import java.io.*;
 
 /**
  * <h1>IP地址转区域测试</h1>
@@ -20,34 +21,40 @@ import java.io.FileInputStream;
 @Slf4j
 class Ip2RegionTest {
 
+    final String url = "https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdb";
+    final String zdbPath = "E:/ip2region.zdb";
+    final String txtPath = "E:/ip.merge.txt";
+    final String errorPath = "E:/ip2region.error.txt";
+    final String ip = "123.132.0.0";
+
     /**
      * 通过url初始化
      */
     // @Test
     void test00InitByUrl() {
+        log.info("是否已经初始化：{}", Ip2Region.initialized());
+        Ip2Region.initByUrl(url);
         log.info(String.valueOf(Ip2Region.initialized()));
-        Ip2Region.initByUrl("https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdat");
-        log.info(String.valueOf(Ip2Region.initialized()));
-        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
-        // [main] INFO cn.z.ip2region.Ip2Region - false
-        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，URL路径为：https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdat
-        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
-        // [main] INFO cn.z.ip2region.Ip2Region - true
-        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{province='山东', city='济宁', zipCode='272000',
-        // areaCode='0537', isp='移动'}
+        log.info("是否已经初始化：{}", Ip2Region.initialized());
+        log.info(String.valueOf(Ip2Region.parse(ip)));
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 是否已经初始化：false
+        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，URL路径为：https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdb
+        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 是否已经初始化：true
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
     }
 
     /**
      * 通过文件初始化
      */
-    // @Test
+    @Test
     void test01InitByFile() {
-        Ip2Region.initByFile("E:/ip2region.zip");
-        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
-        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zip
-        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
-        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{province='山东', city='济宁', zipCode='272000',
-        // areaCode='0537', isp='移动'}
+        Ip2Region.initByFile(zdbPath);
+        log.info(String.valueOf(Ip2Region.parse(ip)));
+        log.info(String.valueOf(Ip2Region.parse("1.6.2.0")));
+        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
+        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
     }
 
     /**
@@ -56,13 +63,12 @@ class Ip2RegionTest {
     // @Test
     void test02InitByInputStream() {
         try {
-            Ip2Region.init(new FileInputStream("E:/ip2region.zip"));
+            Ip2Region.init(new FileInputStream(zdbPath));
         } catch (Exception ignore) {
         }
-        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
-        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
-        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{province='山东', city='济宁', zipCode='272000',
-        // areaCode='0537', isp='移动'}
+        log.info(String.valueOf(Ip2Region.parse(ip)));
+        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
     }
 
     /**
@@ -70,14 +76,13 @@ class Ip2RegionTest {
      */
     // @Test
     void test03InitMore() {
-        Ip2Region.initByFile("E:/ip2region.zip");
-        Ip2Region.initByFile("E:/ip2region.zip");
-        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
-        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zip
-        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
+        Ip2Region.initByFile(zdbPath);
+        Ip2Region.initByFile(zdbPath);
+        log.info(String.valueOf(Ip2Region.parse(ip)));
+        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
+        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
         // [main] WARN cn.z.ip2region.Ip2Region - 已经初始化过了，不可重复初始化！
-        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{province='山东', city='济宁', zipCode='272000',
-        // areaCode='0537', isp='移动'}
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
     }
 
     /**
@@ -85,31 +90,72 @@ class Ip2RegionTest {
      */
     // @Test
     void test04InitException() {
-        Ip2Region.initByFile("E:/ip2region");
-        log.info(String.valueOf(Ip2Region.parse("123.132.0.0")));
-        // [main]  INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region
+        Ip2Region.initByFile("A:/1.txt");
+        log.info(String.valueOf(Ip2Region.parse(ip)));
+        // [main]  INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：A:/1.txt
         // [main] ERROR cn.z.ip2region.Ip2Region - 初始化文件异常！
-        // java.io.FileNotFoundException: E:\ip2region (系统找不到指定的文件。)
+        // java.io.FileNotFoundException: A:/1.txt (系统找不到指定的文件。)
+        // cn.z.ip2region.Ip2RegionException: 初始化文件异常！
     }
 
     /**
-     * 覆盖测试(2302版本497191条数据)
+     * 性能测试
      */
     // @Test
-    void test05CoverageTest() {
-        Ip2Region.initByFile("E:/ip2region.zip");
+    void test05PerformanceTest() {
+        Ip2Region.initByFile(zdbPath);
+        log.info(String.valueOf(Ip2Region.parse(ip)));
         long startTime = System.currentTimeMillis();
-        int count = 0;
-        for (int i = 1300000; i < 2000000; i++) {
-            if (Ip2Region.parse(String.valueOf(i)) != null) {
-                count++;
-            }
+        for (long i = 0; i < 0x100000000L; i++) {
+            Ip2Region.parse(i);
         }
         long endTime = System.currentTimeMillis();
-        log.info("查询700000条数据，{}条有效数据，用时{}毫秒", count, endTime - startTime);
-        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zip
-        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：2302
-        // [main] INFO cn.z.ip2region.Ip2RegionTest - 查询700000条数据，497191条有效数据，用时322毫秒
+        log.info("查询 {} 条数据，用时 {} 毫秒", 0x100000000L, endTime - startTime);
+        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
+        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
+        // [main] WARN cn.z.ip2region.Ip2RegionTest - 查询 4294967296 条数据，用时 562161 毫秒
+    }
+
+    /**
+     * 完整性测试
+     */
+    // @Test
+    void test06IntegrityTest() throws Exception {
+        Ip2Region.initByFile(zdbPath);
+        log.info(String.valueOf(Ip2Region.parse(ip)));
+        long startTime = System.currentTimeMillis();
+
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(errorPath));
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
+        String line = bufferedReader.readLine();
+        while (line != null && !line.isEmpty()) {
+            // 起始IP地址|结束IP地址|国家|地区|省份|城市|ISP
+            String[] s = line.split("\\|");
+            String region = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
+                    + ("0".equals(s[4]) ? "" : s[4]) + "|" // 省份
+                    + ("0".equals(s[5]) ? "" : s[5]) + "|" // 城市
+                    + ("0".equals(s[6]) ? "" : s[6]); // ISP
+            int hash = (new Region(region)).toString().hashCode();
+            long ipStart = Ip2Region.ip2long(s[0]);
+            long ipEnd = Ip2Region.ip2long(s[1]) + 1;
+            for (long i = ipStart; i < ipEnd; i++) {
+                if (hash != Ip2Region.parse(i).toString().hashCode()) {
+                    String error = "解析记录`" + line + "`错误，IP地址为`" + Ip2Region.long2ip(i) //
+                            + "`，实际结果为`" + Ip2Region.parse(i) + "`";
+                    log.error(error);
+                    bufferedWriter.write(error + "\n");
+                }
+            }
+            log.info("解析记录`{}`，共 {} 条", line, ipEnd - ipStart);
+            line = bufferedReader.readLine();
+        }
+        bufferedReader.close();
+        bufferedWriter.flush();
+        bufferedWriter.close();
+
+        long endTime = System.currentTimeMillis();
+        log.info("查询 {} 条数据，用时 {} 毫秒", 0x100000000L, endTime - startTime);
     }
 
 }

@@ -30,14 +30,15 @@ import java.util.zip.ZipOutputStream;
 class DataGenerationTest {
 
     final String txtPath = "E:/ip.merge.txt";
+    // final String txtPath = "E:/1.txt";
     final String dbPath = "E:/ip2region.db";
-    final String zdbPath = "E:/ip2region.zdb";
+    final String zipPath = "E:/ip2region.zdb";
     final int version = 20221207;
 
     /**
      * 数据文件生成
      */
-    // @Test
+    @Test
     void test00DataGeneration() throws Exception {
         test01Txt2Db();
         test02Compress();
@@ -52,9 +53,11 @@ class DataGenerationTest {
         // 头部区 版本号 指针
         final int headerVersionPtr = 4;
         // 头部区 记录区指针 值
-        final int headerRecordAreaPtrValue = 16;
+        final int headerRecordAreaPtrValue = 20;
         // 头部区 二级索引区指针 值
         int headerVector2AreaPtrValue;
+        // 头部区 索引区指针 值
+        int headerVectorAreaPtrValue;
         // 二级索引 个数
         final int vector2Size = 256 * 256 + 1;
 
@@ -101,6 +104,8 @@ class DataGenerationTest {
         }
         // 头部区 二级索引区指针 值
         headerVector2AreaPtrValue = size;
+        // 头部区 索引区指针 值
+        headerVectorAreaPtrValue = headerVector2AreaPtrValue + vector2Size * 4;
         // 二级索引区
         size += vector2Size * 4;
         // 索引区
@@ -109,17 +114,19 @@ class DataGenerationTest {
 
         /* 创建二进制文件 */
         ByteBuffer buffer = ByteBuffer.allocate(size).order(ByteOrder.LITTLE_ENDIAN);
-
         // 记录区
         buffer.position(headerRecordAreaPtrValue);
         for (Record r : recordMap.values()) {
-            buffer.put((byte) r.byteLength);
+            // 记录值长度
+            buffer.put((byte) r.getByteLength());
+            // 记录值
             buffer.put(r.getBytes());
         }
 
         // 索引区
-        buffer.position(headerVector2AreaPtrValue + vector2Size * 4);
+        buffer.position(headerVectorAreaPtrValue);
         for (String[] s : vectorList) {
+            // 索引指针
             vectorPtrMap.add(buffer.position());
             // 起始IP地址后2段、结束IP地址后2段
             buffer.put(last2SegmentsIp2Bytes(s[0], s[1]));
@@ -129,29 +136,34 @@ class DataGenerationTest {
 
         // 二级索引区
         buffer.position(headerVector2AreaPtrValue);
-        // 第一条
         int previousValue = 0;
-        {
-            int value = top2SegmentsIp2Int(vectorList.get(1)[0]);
-            for (int j = 0; j < value - previousValue; j++) {
-                buffer.putInt(vectorPtrMap.get(0));
+        int vectorPtrMapIndex = 0;
+        // int ptr = vectorPtrMap.get(i);
+        // for (int j = 0; j < count; j++) {
+        //     buffer.putInt(ptr);
+        // }
+        // int ipTop2SegmentsStart = top2SegmentsIp2Int(vectorList.get(i)[0]);
+        // int ipTop2SegmentsEnd = top2SegmentsIp2Int(vectorList.get(i)[1]);
+        // int ipLast2SegmentsStart = last2SegmentsIp2Int(vectorList.get(i)[0]);
+        // int ipLast2SegmentsEnd = last2SegmentsIp2Int(vectorList.get(i)[1]);
+        for (int i = 0; i < vectorList.size(); i++) {
+            // 起始IP地址后2段为0.0
+            if (last2SegmentsIp2Int(vectorList.get(i)[0]) == 0) {
+                int ipTop2SegmentsStart = top2SegmentsIp2Int(vectorList.get(i)[0]);
+                int ipTop2SegmentsEnd = top2SegmentsIp2Int(vectorList.get(i)[1]);
+                int count = ipTop2SegmentsEnd - ipTop2SegmentsStart;
+                if (count > 0) {
+                    int ptr = vectorPtrMap.get(vectorPtrMapIndex);
+                    for (int j = 0; j < count; j++) {
+                        buffer.putInt(ptr);
+                    }
+                    vectorPtrMapIndex = i + 1;
+                }
             }
-            previousValue = value;
+
+
         }
-        for (int i = 2; i < vectorList.size(); i++) {
-            int value = top2SegmentsIp2Int(vectorList.get(i)[0]);
-            for (int j = 0; j < value - previousValue; j++) {
-                buffer.putInt(vectorPtrMap.get(i - 1));
-            }
-            previousValue = value;
-        }
-        // 倒数第二条
-        {
-            for (int j = 0; j < 0xFFFF - previousValue; j++) {
-                buffer.putInt(vectorPtrMap.get(vectorPtrMap.size() - 1));
-            }
-        }
-        // 最后一条
+        // 附加一条
         buffer.putInt(buffer.capacity());
 
         // 头部区
@@ -162,6 +174,8 @@ class DataGenerationTest {
         buffer.putInt(headerRecordAreaPtrValue);
         // 二级索引区指针
         buffer.putInt(headerVector2AreaPtrValue);
+        // 索引区指针
+        buffer.putInt(headerVectorAreaPtrValue);
         // CRC32校验和
         buffer.position(4);
         CRC32 crc32 = new CRC32();
@@ -193,7 +207,15 @@ class DataGenerationTest {
      */
     static int top2SegmentsIp2Int(String ip) {
         String[] s = ip.split("\\.");
-        return Integer.parseInt(s[0]) * 256 + Integer.parseInt(s[1]);
+        return (Integer.parseInt(s[0]) << 8) + Integer.parseInt(s[1]);
+    }
+
+    /**
+     * IP地址后2段转int
+     */
+    static int last2SegmentsIp2Int(String ip) {
+        String[] s = ip.split("\\.");
+        return (Integer.parseInt(s[2]) << 8) + Integer.parseInt(s[3]);
     }
 
     /**
@@ -201,15 +223,15 @@ class DataGenerationTest {
      */
     static class Record {
         /**
-         * 偏移
+         * 记录值偏移
          */
         private int offset;
         /**
-         * byte[]
+         * 记录值
          */
         private byte[] bytes;
         /**
-         * 长度
+         * 记录值长度
          */
         private int byteLength;
 
@@ -257,7 +279,8 @@ class DataGenerationTest {
      */
     // @Test
     void test02Compress() throws Exception {
-        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zdbPath));
+        log.info("---------- 压缩 ---------- 开始");
+        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipPath));
         zipOutputStream.putNextEntry(new ZipEntry(new File(dbPath).getName()));
         FileInputStream fileInputStream = new FileInputStream(dbPath);
         byte[] buffer = new byte[4096];
@@ -269,6 +292,7 @@ class DataGenerationTest {
         fileInputStream.close();
         zipOutputStream.closeEntry();
         zipOutputStream.close();
+        log.info("---------- 压缩 ---------- 结束");
     }
 
 }

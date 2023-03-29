@@ -41,12 +41,12 @@ public class Region {
      */
     public Region(String region) {
         // 国家|省份|城市|ISP
-        String[] s = region.split("\\|");
+        String[] s = region.split("\\|", -1);
         if (s.length == 4) {
-            country = s[0];
-            province = s[1];
-            city = s[2];
-            isp = s[3];
+            this.country = s[0];
+            this.province = s[1];
+            this.city = s[2];
+            this.isp = s[3];
         }
     }
 
