@@ -30,7 +30,7 @@ class Ip2RegionTest {
     /**
      * 通过url初始化
      */
-    // @Test
+    @Test
     void test00InitByUrl() {
         log.info("是否已经初始化：{}", Ip2Region.initialized());
         Ip2Region.initByUrl(url);
@@ -47,11 +47,10 @@ class Ip2RegionTest {
     /**
      * 通过文件初始化
      */
-    @Test
+    // @Test
     void test01InitByFile() {
         Ip2Region.initByFile(zdbPath);
         log.info(String.valueOf(Ip2Region.parse(ip)));
-        log.info(String.valueOf(Ip2Region.parse("1.6.2.0")));
         // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
         // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
         // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
@@ -99,10 +98,32 @@ class Ip2RegionTest {
     }
 
     /**
+     * 数据错误
+     */
+    // @Test
+    void test05Error() {
+        Ip2Region.initByFile(zdbPath);
+        try {
+            Ip2Region.parse("0.0.0.300");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            Ip2Region.parse(-1L);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
+        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+        // cn.z.ip2region.Ip2RegionException: IP地址 0.0.0.300 不合法！
+        // cn.z.ip2region.Ip2RegionException: IP地址 -1 不合法！
+    }
+
+    /**
      * 性能测试
      */
     // @Test
-    void test05PerformanceTest() {
+    void test06PerformanceTest() {
         Ip2Region.initByFile(zdbPath);
         log.info(String.valueOf(Ip2Region.parse(ip)));
         long startTime = System.currentTimeMillis();
@@ -114,18 +135,18 @@ class Ip2RegionTest {
         // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
         // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
         // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
-        // [main] WARN cn.z.ip2region.Ip2RegionTest - 查询 4294967296 条数据，用时 562161 毫秒
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 查询 4294967296 条数据，用时 562161 毫秒
     }
 
     /**
      * 完整性测试
      */
     // @Test
-    void test06IntegrityTest() throws Exception {
+    void test07IntegrityTest() throws Exception {
         Ip2Region.initByFile(zdbPath);
         log.info(String.valueOf(Ip2Region.parse(ip)));
         long startTime = System.currentTimeMillis();
-
+        int errorCount = 0;
         BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(errorPath));
         BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
         String line = bufferedReader.readLine();
@@ -141,8 +162,9 @@ class Ip2RegionTest {
             long ipEnd = Ip2Region.ip2long(s[1]) + 1;
             for (long i = ipStart; i < ipEnd; i++) {
                 if (hash != Ip2Region.parse(i).toString().hashCode()) {
-                    String error = "解析记录`" + line + "`错误，IP地址为`" + Ip2Region.long2ip(i) //
-                            + "`，实际结果为`" + Ip2Region.parse(i) + "`";
+                    String error = "解析记录`" + line + "`时发现IP地址`" + Ip2Region.long2ip(i) //
+                            + "`解析错误，实际为`" + Ip2Region.parse(i) + "`";
+                    errorCount++;
                     log.error(error);
                     bufferedWriter.write(error + "\n");
                 }
@@ -153,9 +175,17 @@ class Ip2RegionTest {
         bufferedReader.close();
         bufferedWriter.flush();
         bufferedWriter.close();
-
         long endTime = System.currentTimeMillis();
-        log.info("查询 {} 条数据，用时 {} 毫秒", 0x100000000L, endTime - startTime);
+        log.info("解析 {} 条数据，错误 {} 条，用时 {} 毫秒", 0x100000000L, errorCount, endTime - startTime);
+        // [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
+        // [main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 解析记录`0.0.0.0|0.255.255.255|0|0|0|内网IP|内网IP`，共 16777216 条
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 解析记录`1.0.0.0|1.0.0.255|澳大利亚|0|0|0|0`，共 256 条
+        // ...
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 解析记录`223.255.255.0|223.255.255.255|澳大利亚|0|0|0|0`，共 256 条
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 解析记录`224.0.0.0|255.255.255.255|0|0|0|内网IP|内网IP`，共 536870912 条
+        // [main] INFO cn.z.ip2region.Ip2RegionTest - 解析 4294967296 条数据，错误 0 条，用时 869132 毫秒
     }
 
 }

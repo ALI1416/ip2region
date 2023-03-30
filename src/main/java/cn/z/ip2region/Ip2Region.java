@@ -172,7 +172,7 @@ public class Ip2Region {
      */
     public static Region parse(long ip) {
         if (ip < 0 || ip > 0xFFFFFFFFL) {
-            throw new Ip2RegionException("IP地址" + ip + "不合法！");
+            throw new Ip2RegionException("IP地址 " + ip + " 不合法！");
         }
         return innerParse(ip);
     }
@@ -245,13 +245,13 @@ public class Ip2Region {
     public static long ip2long(String ip) {
         String[] s = ip.split("\\.");
         if (s.length != 4) {
-            throw new Ip2RegionException("IP地址" + ip + "不合法！");
+            throw new Ip2RegionException("IP地址 " + ip + " 不合法！");
         }
         long address = 0;
         for (int i = 0; i < 4; i++) {
             long v = Long.parseLong(s[i]);
             if (v < 0 || v > 255) {
-                throw new Ip2RegionException("IP地址" + ip + "不合法！");
+                throw new Ip2RegionException("IP地址 " + ip + " 不合法！");
             }
             address |= (v << 8 * (3 - i));
         }

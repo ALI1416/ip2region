@@ -30,7 +30,6 @@ import java.util.zip.ZipOutputStream;
 class DataGenerationTest {
 
     final String txtPath = "E:/ip.merge.txt";
-    // final String txtPath = "E:/1.txt";
     final String dbPath = "E:/ip2region.db";
     final String zipPath = "E:/ip2region.zdb";
     final int version = 20221207;
@@ -38,7 +37,7 @@ class DataGenerationTest {
     /**
      * 数据文件生成
      */
-    @Test
+    // @Test
     void test00DataGeneration() throws Exception {
         test01Txt2Db();
         test02Compress();
@@ -65,41 +64,48 @@ class DataGenerationTest {
         Set<String> recordSet = new TreeSet<>((o1, o2) -> Collator.getInstance(Locale.CHINA).compare(o1, o2));
         // 记录区Map<记录值hash,Record>
         Map<Integer, Record> recordMap = new LinkedHashMap<>();
-        // 索引区List[{起始IP地址,结束IP地址,国家|省份|城市|ISP}]
-        List<String[]> vectorList = new ArrayList<>();
-        // 索引区指针List<索引指针>
-        List<Integer> vectorPtrMap = new ArrayList<>();
+        // 索引区List<Vector>
+        List<Vector> vectorList = new ArrayList<>();
 
         /* 读取文件 */
         BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
         String line = bufferedReader.readLine();
+        // 索引附加个数
+        int vectorAddition = 0;
         while (line != null && !line.isEmpty()) {
             // 起始IP地址|结束IP地址|国家|地区|省份|城市|ISP
             String[] s = line.split("\\|");
-            String region = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
+            String record = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
                     + ("0".equals(s[4]) ? "" : s[4]) + "|" // 省份
                     + ("0".equals(s[5]) ? "" : s[5]) + "|" // 城市
                     + ("0".equals(s[6]) ? "" : s[6]); // ISP
-            recordSet.add(region);
-            vectorList.add(new String[]{s[0], s[1], region});
+            recordSet.add(record);
+            Vector vector = new Vector(s[0], s[1], record.hashCode());
+            Vector vector2 = vector.separation();
+            vectorList.add(vector);
+            if (vector2 != null) {
+                vectorAddition++;
+                vectorList.add(vector2);
+                log.info("拆分 {}", line);
+            }
             line = bufferedReader.readLine();
         }
         bufferedReader.close();
         log.info("记录区数据 {} 条", recordSet.size());
-        log.info("索引区数据 {} 条", vectorList.size());
+        log.info("索引区数据 {} 条，其中附加 {} 条", vectorList.size(), vectorAddition);
 
         /* 计算文件大小 */
         // 头部区
         int size = headerRecordAreaPtrValue;
         // 记录区
-        for (String s : recordSet) {
+        for (String record : recordSet) {
             // java的String为UTF16LE是变长4字节，而UTF8是变长3字节
-            byte[] bytes = s.getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = record.getBytes(StandardCharsets.UTF_8);
             int length = bytes.length;
             if (length > 256) {
-                throw new Exception("记录值`" + s + "`为" + length + "字节，超出最大限制255字节！");
+                throw new Exception("记录值`" + record + "`为" + length + "字节，超出最大限制255字节！");
             }
-            recordMap.put(s.hashCode(), new Record(size, bytes, length));
+            recordMap.put(record.hashCode(), new Record(size, bytes, length));
             size += (length + 1);
         }
         // 头部区 二级索引区指针 值
@@ -125,43 +131,26 @@ class DataGenerationTest {
 
         // 索引区
         buffer.position(headerVectorAreaPtrValue);
-        for (String[] s : vectorList) {
-            // 索引指针
-            vectorPtrMap.add(buffer.position());
-            // 起始IP地址后2段、结束IP地址后2段
-            buffer.put(last2SegmentsIp2Bytes(s[0], s[1]));
+        for (Vector vector : vectorList) {
+            vector.setPrt(buffer.position());
+            // IP地址后2段
+            buffer.put(vector.getIpLastBytes());
             // 记录指针
-            buffer.putInt(recordMap.get(s[2].hashCode()).getOffset());
+            buffer.putInt(recordMap.get(vector.getRecordHash()).getPrt());
         }
 
         // 二级索引区
         buffer.position(headerVector2AreaPtrValue);
-        int previousValue = 0;
-        int vectorPtrMapIndex = 0;
-        // int ptr = vectorPtrMap.get(i);
-        // for (int j = 0; j < count; j++) {
-        //     buffer.putInt(ptr);
-        // }
-        // int ipTop2SegmentsStart = top2SegmentsIp2Int(vectorList.get(i)[0]);
-        // int ipTop2SegmentsEnd = top2SegmentsIp2Int(vectorList.get(i)[1]);
-        // int ipLast2SegmentsStart = last2SegmentsIp2Int(vectorList.get(i)[0]);
-        // int ipLast2SegmentsEnd = last2SegmentsIp2Int(vectorList.get(i)[1]);
-        for (int i = 0; i < vectorList.size(); i++) {
-            // 起始IP地址后2段为0.0
-            if (last2SegmentsIp2Int(vectorList.get(i)[0]) == 0) {
-                int ipTop2SegmentsStart = top2SegmentsIp2Int(vectorList.get(i)[0]);
-                int ipTop2SegmentsEnd = top2SegmentsIp2Int(vectorList.get(i)[1]);
-                int count = ipTop2SegmentsEnd - ipTop2SegmentsStart;
-                if (count > 0) {
-                    int ptr = vectorPtrMap.get(vectorPtrMapIndex);
-                    for (int j = 0; j < count; j++) {
-                        buffer.putInt(ptr);
-                    }
-                    vectorPtrMapIndex = i + 1;
+        for (Vector vector : vectorList) {
+            // x.x.0.0|x.x.x.x
+            if (vector.getIpStartLast() == 0) {
+                // x.x.x.x|0.0.x.x - 0.0.x.x|x.x.x.x
+                int count = vector.getIpEndFirst() - vector.getIpStartFirst() + 1;
+                int prt = vector.getPrt();
+                for (int i = 0; i < count; i++) {
+                    buffer.putInt(prt);
                 }
             }
-
-
         }
         // 附加一条
         buffer.putInt(buffer.capacity());
@@ -193,39 +182,13 @@ class DataGenerationTest {
     }
 
     /**
-     * IP地址后2段转byte[]
-     */
-    static byte[] last2SegmentsIp2Bytes(String ip, String ip2) {
-        String[] s = ip.split("\\.");
-        String[] s2 = ip2.split("\\.");
-        return new byte[]{(byte) Integer.parseInt(s[3]), (byte) Integer.parseInt(s[2]),
-                (byte) Integer.parseInt(s2[3]), (byte) Integer.parseInt(s2[2])};
-    }
-
-    /**
-     * IP地址前2段转int
-     */
-    static int top2SegmentsIp2Int(String ip) {
-        String[] s = ip.split("\\.");
-        return (Integer.parseInt(s[0]) << 8) + Integer.parseInt(s[1]);
-    }
-
-    /**
-     * IP地址后2段转int
-     */
-    static int last2SegmentsIp2Int(String ip) {
-        String[] s = ip.split("\\.");
-        return (Integer.parseInt(s[2]) << 8) + Integer.parseInt(s[3]);
-    }
-
-    /**
      * 记录
      */
     static class Record {
         /**
-         * 记录值偏移
+         * 指针
          */
-        private int offset;
+        private int prt;
         /**
          * 记录值
          */
@@ -238,18 +201,18 @@ class DataGenerationTest {
         public Record() {
         }
 
-        public Record(int offset, byte[] bytes, int byteLength) {
-            this.offset = offset;
+        public Record(int prt, byte[] bytes, int byteLength) {
+            this.prt = prt;
             this.bytes = bytes;
             this.byteLength = byteLength;
         }
 
-        public int getOffset() {
-            return offset;
+        public int getPrt() {
+            return prt;
         }
 
-        public void setOffset(int offset) {
-            this.offset = offset;
+        public void setPrt(int prt) {
+            this.prt = prt;
         }
 
         public byte[] getBytes() {
@@ -270,7 +233,137 @@ class DataGenerationTest {
 
         @Override
         public String toString() {
-            return "Record{" + "offset=" + offset + ", bytes=" + new String(bytes) + ", byteLength=" + byteLength + '}';
+            return "Record{" + "prt=" + prt + ", bytes=" + new String(bytes) + ", byteLength=" + byteLength + '}';
+        }
+    }
+
+    /**
+     * 索引
+     */
+    static class Vector {
+        /**
+         * 指针
+         */
+        private int prt;
+        /**
+         * 起始IP地址前2段 0.0.x.x|x.x.x.x
+         */
+        private int ipStartFirst;
+        /**
+         * 起始IP地址后2段 x.x.0.0|x.x.x.x
+         */
+        private int ipStartLast;
+        /**
+         * 结束IP地址前2段 x.x.x.x|0.0.x.x
+         */
+        private int ipEndFirst;
+        /**
+         * 结束IP地址后2段 x.x.x.x|x.x.0.0
+         */
+        private int ipEndLast;
+        /**
+         * 记录值hash
+         */
+        private int recordHash;
+
+        public Vector() {
+        }
+
+        public Vector(String ipStart, String ipEnd, int recordHash) {
+            String[] start = ipStart.split("\\.");
+            this.ipStartFirst = (Integer.parseInt(start[0]) << 8) + Integer.parseInt(start[1]);
+            this.ipStartLast = (Integer.parseInt(start[2]) << 8) + Integer.parseInt(start[3]);
+            String[] end = ipEnd.split("\\.");
+            this.ipEndFirst = (Integer.parseInt(end[0]) << 8) + Integer.parseInt(end[1]);
+            this.ipEndLast = (Integer.parseInt(end[2]) << 8) + Integer.parseInt(end[3]);
+            this.recordHash = recordHash;
+        }
+
+        /**
+         * 拆分<br>
+         * 例如<code>0.1.0.3|0.6.0.8</code>占了上一个二级索引块的一部分<br>
+         * 会被拆成<code>0.1.0.3|0.1.255.255</code>和<code>0.2.0.0|0.6.0.8</code>
+         *
+         * @return 不需要拆分，则返回null，原对象不变<br>
+         * 需要拆分，原对象会修改成前块，并返回后块
+         */
+        public Vector separation() {
+            // 跨越二级索引块 并且 起始IP地址后2段不为0
+            if (ipStartFirst != ipEndFirst && ipStartLast != 0) {
+                // 后块
+                Vector vector = new Vector();
+                vector.setIpStartFirst(ipStartFirst + 1);
+                vector.setIpEndFirst(ipEndFirst);
+                vector.setIpStartLast(0);
+                vector.setIpEndLast(ipEndLast);
+                vector.setRecordHash(recordHash);
+                // 前块
+                ipEndFirst = ipStartFirst;
+                ipEndLast = 0xFFFF;
+                return vector;
+            }
+            return null;
+        }
+
+        /**
+         * IP地址后2段转byte[]
+         */
+        public byte[] getIpLastBytes() {
+            return new byte[]{(byte) ipStartLast, (byte) (ipStartLast >> 8), (byte) ipEndLast, (byte) (ipEndLast >> 8)};
+        }
+
+        public int getPrt() {
+            return prt;
+        }
+
+        public void setPrt(int prt) {
+            this.prt = prt;
+        }
+
+        public int getIpStartFirst() {
+            return ipStartFirst;
+        }
+
+        public void setIpStartFirst(int ipStartFirst) {
+            this.ipStartFirst = ipStartFirst;
+        }
+
+        public int getIpStartLast() {
+            return ipStartLast;
+        }
+
+        public void setIpStartLast(int ipStartLast) {
+            this.ipStartLast = ipStartLast;
+        }
+
+        public int getIpEndFirst() {
+            return ipEndFirst;
+        }
+
+        public void setIpEndFirst(int ipEndFirst) {
+            this.ipEndFirst = ipEndFirst;
+        }
+
+        public int getIpEndLast() {
+            return ipEndLast;
+        }
+
+        public void setIpEndLast(int ipEndLast) {
+            this.ipEndLast = ipEndLast;
+        }
+
+        public int getRecordHash() {
+            return recordHash;
+        }
+
+        public void setRecordHash(int recordHash) {
+            this.recordHash = recordHash;
+        }
+
+        @Override
+        public String toString() {
+            return "Vector{" + "prt=" + prt + ", ipStartFirst=" + ipStartFirst + ", ipStartLast=" + ipStartLast + ", "
+                    + "ipEndFirst=" + ipEndFirst + ", ipEndLast=" + ipEndLast + ", recordHash=" + recordHash + '}';
         }
     }
 
