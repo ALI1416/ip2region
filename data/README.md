@@ -2,17 +2,18 @@
 
 ## 文件列表
 
-### ip2region.zdb
+### 标签：`3.0.0`
 
-- 标签：`3.0.0`，版本号：`20221207`，校验码：`68EDD841`，点击下载：
-[![ip2region.zdb](https://img.shields.io/github/size/ali1416/ip2region/data/ip2region.zdb?label=ip2region.zdb&color=success&branch=v3.0.0)](https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb)
-
-  链接地址：`https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb`
+- 文件名：`ip2region.zdb`
+  - 版本号：`20221207`
+  - 校验码：`68EDD841`
+  - 点击下载：[![ip2region.zdb](https://img.shields.io/github/size/ali1416/ip2region/data/ip2region.zdb?label=ip2region.zdb&color=success&branch=v3.0.0)](https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb)
+  - 链接地址：`https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb`
 
 ## 数据来源
 
-- 数据文件来源：<https://github.com/lionsoul2014/ip2region>
-- 查看最新版本：<https://github.com/lionsoul2014/ip2region/commits/master/data/ip.merge.txt>
+- 数据文件来源：<https://gitee.com/lionsoul/ip2region>
+- 查看最新版本：<https://gitee.com/lionsoul/ip2region/commits/master/data/ip.merge.txt>
 - 数据文件下载：<https://gitee.com/lionsoul/ip2region/blob/master/data/ip.merge.txt>
 - 数据文件生成方法java程序：[点击查看](../src/test/java/cn/z/ip2region/DataGenerationTest.java)
 
