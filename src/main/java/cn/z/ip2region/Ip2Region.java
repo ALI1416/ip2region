@@ -80,7 +80,7 @@ public class Ip2Region {
 
     /**
      * 初始化实例通过URL<br>
-     * 可以用：<code>https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdb</code>
+     * 例如：<code>https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb</code>
      *
      * @param url URL
      */
@@ -131,7 +131,8 @@ public class Ip2Region {
                         buffer.position(buffer.position() + 4);
                         vector2AreaPtr = buffer.getInt();
                         vectorAreaPtr = buffer.getInt();
-                        log.info("数据加载成功，版本号为：{}", version);
+                        log.info("数据加载成功，版本号为：{}，校验码为：{}", version,
+                                Integer.toHexString(crc32OriginValue).toUpperCase());
                         notInstantiated = false;
                     } catch (Exception e) {
                         log.error("初始化异常！", e);

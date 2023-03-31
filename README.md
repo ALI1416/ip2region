@@ -19,7 +19,6 @@
 ## 数据文件
 
 - 数据文件目录：[点击查看](./data)
-- 数据文件生成方法java程序：[点击查看](./src/test/java/cn/z/ip2region/DataGenerationTest.java)
 
 ## 依赖导入
 
@@ -27,7 +26,7 @@
 <dependency>
     <groupId>cn.404z</groupId>
     <artifactId>ip2region</artifactId>
-    <version>3.0.0</version>
+    <version>3.0.1</version>
 </dependency>
 <dependency>
     <groupId>ch.qos.logback</groupId>
@@ -41,7 +40,7 @@
 常量
 
 ```java
-final String url = "https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdb";
+final String url = "https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb";
 final String zdbPath = "E:/ip2region.zdb";
 final String txtPath = "E:/ip.merge.txt";
 final String errorPath = "E:/ip2region.error.txt";
@@ -64,8 +63,8 @@ log.info(String.valueOf(Ip2Region.parse(ip)));
 
 ```txt
 [main] INFO cn.z.ip2region.Ip2RegionTest - 是否已经初始化：false
-[main] INFO cn.z.ip2region.Ip2Region - 初始化，URL路径为：https://cdn.jsdelivr.net/gh/ali1416/ip2region@master/data/ip2region.zdb
-[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+[main] INFO cn.z.ip2region.Ip2Region - 初始化，URL路径为：https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb
+[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207，校验码为：68EDD841
 [main] INFO cn.z.ip2region.Ip2RegionTest - 是否已经初始化：true
 [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
 ```
@@ -83,7 +82,7 @@ log.info(String.valueOf(Ip2Region.parse(ip)));
 
 ```txt
 [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
-[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207，校验码为：68EDD841
 [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
 ```
 
@@ -102,7 +101,7 @@ log.info(String.valueOf(Ip2Region.parse(ip)));
 结果
 
 ```txt
-[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207，校验码为：68EDD841
 [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
 ```
 
@@ -120,7 +119,7 @@ log.info(String.valueOf(Ip2Region.parse(ip)));
 
 ```txt
 [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
-[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207，校验码为：68EDD841
 [main] WARN cn.z.ip2region.Ip2Region - 已经初始化过了，不可重复初始化！
 [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
 ```
@@ -165,7 +164,7 @@ try {
 
 ```txt
 [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
-[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207，校验码为：68EDD841
 cn.z.ip2region.Ip2RegionException: IP地址 0.0.0.300 不合法！
 cn.z.ip2region.Ip2RegionException: IP地址 -1 不合法！
 ```
@@ -189,7 +188,7 @@ log.info("查询 {} 条数据，用时 {} 毫秒", 0x100000000L, endTime - start
 
 ```txt
 [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
-[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207，校验码为：68EDD841
 [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
 [main] INFO cn.z.ip2region.Ip2RegionTest - 查询 4294967296 条数据，用时 562161 毫秒
 ```
@@ -239,7 +238,7 @@ log.info("解析 {} 条数据，错误 {} 条，用时 {} 毫秒", 0x100000000L,
 
 ```txt
 [main] INFO cn.z.ip2region.Ip2Region - 初始化，文件路径为：E:/ip2region.zdb
-[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207
+[main] INFO cn.z.ip2region.Ip2Region - 数据加载成功，版本号为：20221207，校验码为：68EDD841
 [main] INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
 [main] INFO cn.z.ip2region.Ip2RegionTest - 解析记录`0.0.0.0|0.255.255.255|0|0|0|内网IP|内网IP`，共 16777216 条
 [main] INFO cn.z.ip2region.Ip2RegionTest - 解析记录`1.0.0.0|1.0.0.255|澳大利亚|0|0|0|0`，共 256 条
