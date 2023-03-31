@@ -2,7 +2,6 @@ package cn.z.ip2region;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.*;
@@ -31,7 +30,7 @@ class DataGenerationTest {
 
     final String txtPath = "E:/ip.merge.txt";
     final String dbPath = "E:/ip2region.db";
-    final String zipPath = "E:/ip2region.zdb";
+    final String zdbPath = "E:/ip2region.zdb";
     final int version = 20221207;
 
     /**
@@ -373,7 +372,7 @@ class DataGenerationTest {
     // @Test
     void test02Compress() throws Exception {
         log.info("---------- 压缩 ---------- 开始");
-        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zipPath));
+        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zdbPath));
         zipOutputStream.putNextEntry(new ZipEntry(new File(dbPath).getName()));
         FileInputStream fileInputStream = new FileInputStream(dbPath);
         byte[] buffer = new byte[4096];

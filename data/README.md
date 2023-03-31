@@ -78,6 +78,6 @@
 
 ## 参考
 
-- [ip2region](https://github.com/lionsoul2014/ip2region)
-- [phonedata](https://github.com/xluohome/phonedata)
-- [phone-number-geo](https://github.com/EeeMt/phone-number-geo)
+- [lionsoul2014/ip2region](https://github.com/lionsoul2014/ip2region)
+- [xluohome/phonedata](https://github.com/xluohome/phonedata)
+- [EeeMt/phone-number-geo](https://github.com/EeeMt/phone-number-geo)
