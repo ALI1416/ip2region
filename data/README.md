@@ -2,13 +2,14 @@
 
 ## 文件列表
 
-### 标签：`3.0.0`
+### 版本：`v3.0.0`
 
 - 文件名：`ip2region.zdb`
   - 版本号：`20221207`
   - 校验码：`68EDD841`
-  - 点击下载：[![ip2region.zdb](https://img.shields.io/github/size/ali1416/ip2region/data/ip2region.zdb?label=ip2region.zdb&color=success&branch=v3.0.0)](https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb)
-  - 链接地址：`https://cdn.jsdelivr.net/gh/ali1416/ip2region@3.0.0/data/ip2region.zdb`
+  - 点击下载：[![ip2region.zdb](https://img.shields.io/github/size/ALI1416/ip2region/data/ip2region.zdb?label=ip2region.zdb&color=success&branch=v3.0.0)](https://www.404z.cn/files/ip2region/v3.0.0/data/ip2region.zdb)
+  - 链接地址：`https://www.404z.cn/files/ip2region/v3.0.0/data/ip2region.zdb`
+  - 原始地址：`https://github.com/ALI1416/ip2region/blob/v3.0.0/data/ip2region.zdb`
 
 ## 数据来源
 
