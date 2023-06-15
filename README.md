@@ -256,9 +256,7 @@ log.info("解析 {} 条数据，错误 {} 条，用时 {} 毫秒", 0x100000000L,
 
 ## 关于
 
-<object data="https://404z.cn/images/about.svg" style="max-width:100%;">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://404z.cn/images/about.dark.svg">
-    <img alt="About" src="https://404z.cn/images/about.light.svg">
-  </picture>
-</object>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://www.404z.cn/images/about.dark.svg">
+  <img alt="About" src="https://www.404z.cn/images/about.light.svg">
+</picture>
