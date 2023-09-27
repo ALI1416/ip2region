@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.ByteBuffer;
@@ -67,7 +68,7 @@ public class Ip2Region {
     public static void initByFile(String path) {
         if (notInstantiated) {
             try {
-                log.info("初始化，文件路径为：{}", path);
+                log.info("IP地址转区域初始化：文件路径LOCAL_PATH {}", path);
                 init(new FileInputStream(path));
             } catch (Exception e) {
                 log.error("初始化文件异常！", e);
@@ -87,7 +88,7 @@ public class Ip2Region {
     public static void initByUrl(String url) {
         if (notInstantiated) {
             try {
-                log.info("初始化，URL路径为：{}", url);
+                log.info("IP地址转区域初始化：URL路径URL_PATH {}", url);
                 init(new URL(url).openConnection().getInputStream());
             } catch (Exception e) {
                 log.error("初始化URL异常！", e);
@@ -107,10 +108,10 @@ public class Ip2Region {
         if (notInstantiated) {
             synchronized (Ip2Region.class) {
                 if (notInstantiated) {
+                    if (inputStream == null) {
+                        throw new Ip2RegionException("数据文件为空！");
+                    }
                     try {
-                        if (inputStream == null) {
-                            throw new Ip2RegionException("数据文件为空！");
-                        }
                         // 解压
                         ZipInputStream zipInputStream = new ZipInputStream(inputStream);
                         ZipEntry entry = zipInputStream.getNextEntry();
@@ -118,7 +119,7 @@ public class Ip2Region {
                             throw new Ip2RegionException("数据文件异常！");
                         }
                         // 数据
-                        buffer = ByteBuffer.wrap(inputStream2bytes(zipInputStream)) //
+                        buffer = ByteBuffer.wrap(inputStream2Bytes(zipInputStream)) //
                                 .asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
                         int crc32OriginValue = buffer.getInt();
                         CRC32 crc32 = new CRC32();
@@ -131,19 +132,17 @@ public class Ip2Region {
                         buffer.position(buffer.position() + 4);
                         vector2AreaPtr = buffer.getInt();
                         vectorAreaPtr = buffer.getInt();
-                        log.info("数据加载成功，版本号为：{}，校验码为：{}", version,
+                        log.info("数据加载成功：版本号VERSION {} ，校验码CRC32 {}", version,
                                 Integer.toHexString(crc32OriginValue).toUpperCase());
                         notInstantiated = false;
                     } catch (Exception e) {
                         log.error("初始化异常！", e);
                         throw new Ip2RegionException("初始化异常！");
                     } finally {
-                        if (inputStream != null) {
-                            try {
-                                inputStream.close();
-                            } catch (Exception e) {
-                                log.error("关闭异常！", e);
-                            }
+                        try {
+                            inputStream.close();
+                        } catch (Exception e) {
+                            log.error("关闭异常！", e);
                         }
                     }
                 } else {
@@ -156,9 +155,9 @@ public class Ip2Region {
     }
 
     /**
-     * 解析IP的区域
+     * 解析IP地址的区域
      *
-     * @param ip IP地址(String)
+     * @param ip IP地址
      * @return Region
      */
     public static Region parse(String ip) {
@@ -166,28 +165,27 @@ public class Ip2Region {
     }
 
     /**
-     * 解析IP的区域
+     * 解析IP地址的区域
      *
-     * @param ip IP地址(long)
+     * @param ip long型IP地址
      * @return Region
      */
     public static Region parse(long ip) {
         if (ip < 0 || ip > 0xFFFFFFFFL) {
-            throw new Ip2RegionException("IP地址 " + ip + " 不合法！");
+            throw new Ip2RegionException("long型IP地址 " + ip + " 不合法！");
         }
         return innerParse(ip);
     }
 
     /**
-     * 解析IP的区域
+     * 解析IP地址的区域
      *
-     * @param ip IP地址(long)
+     * @param ip long型IP地址
      * @return Region
      */
     private static Region innerParse(long ip) {
         if (notInstantiated) {
-            log.error("未初始化！");
-            return null;
+            throw new Ip2RegionException("未初始化！");
         }
 
         // 二级索引区
@@ -228,6 +226,9 @@ public class Ip2Region {
 
     /**
      * 字节对齐
+     *
+     * @param pos 位置
+     * @return 对齐后的位置
      */
     private static int align(int pos) {
         int remain = (pos - vectorAreaPtr) % 8;
@@ -241,9 +242,15 @@ public class Ip2Region {
     }
 
     /**
-     * ip2long
+     * IP地址转long
+     *
+     * @param ip IP地址
+     * @return long型IP地址
      */
     public static long ip2long(String ip) {
+        if (ip == null || ip.isEmpty()) {
+            throw new Ip2RegionException("IP地址不能为空！");
+        }
         String[] s = ip.split("\\.");
         if (s.length != 4) {
             throw new Ip2RegionException("IP地址 " + ip + " 不合法！");
@@ -260,32 +267,67 @@ public class Ip2Region {
     }
 
     /**
-     * long2ip
+     * long转IP地址
+     *
+     * @param ip long型IP地址
+     * @return IP地址
      */
     public static String long2ip(long ip) {
+        if (ip < 0 || ip > 0xFFFFFFFFL) {
+            throw new Ip2RegionException("long型IP地址 " + ip + " 不合法！");
+        }
         return ((ip >> 24) & 0xFF) + "." + ((ip >> 16) & 0xFF) + "." + ((ip >> 8) & 0xFF) + "." + ((ip) & 0xFF);
     }
 
     /**
-     * inputStream转byte[]
+     * 是合法的IP地址
+     *
+     * @param ip IP地址
+     * @return 是否合法
+     * @since 3.1.2
      */
-    public static byte[] inputStream2bytes(InputStream inputStream) {
+    public static boolean isValidIp(String ip) {
+        if (ip == null || ip.isEmpty()) {
+            return false;
+        }
+        String[] s = ip.split("\\.");
+        if (s.length != 4) {
+            return false;
+        }
+        for (int i = 0; i < 4; i++) {
+            int v = Integer.parseInt(s[i]);
+            if (v < 0 || v > 255) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 是合法的IP地址
+     *
+     * @param ip long型IP地址
+     * @return 是否合法
+     * @since 3.1.2
+     */
+    public static boolean isValidIp(long ip) {
+        return ip >= 0 && ip <= 0xFFFFFFFFL;
+    }
+
+    /**
+     * InputStream转byte[]
+     *
+     * @param input InputStream
+     * @return byte[]
+     */
+    public static byte[] inputStream2Bytes(InputStream input) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         byte[] buffer = new byte[4096];
         int n;
-        try {
-            while (-1 != (n = inputStream.read(buffer))) {
-                output.write(buffer, 0, n);
-            }
-        } catch (Exception e) {
-            log.error("转换异常！", e);
-        } finally {
-            try {
-                inputStream.close();
-            } catch (Exception e) {
-                log.error("关闭异常！", e);
-            }
+        while (-1 != (n = input.read(buffer))) {
+            output.write(buffer, 0, n);
         }
+        input.close();
         return output.toByteArray();
     }
 
