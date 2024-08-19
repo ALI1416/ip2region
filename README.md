@@ -20,6 +20,10 @@
 
 - 数据文件目录：[点击查看](./data)
 
+### 其他语言项目
+
+- `JavaScript` : [ALI1416/ip2region-js](https://github.com/ALI1416/ip2region-js)
+
 ## 依赖导入
 
 ```xml
