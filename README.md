@@ -1,4 +1,4 @@
-# IP Address To Region IP地址转区域
+# IP Address To Region For Java IP地址转区域Java版
 
 [![License](https://img.shields.io/github/license/ALI1416/ip2region?label=License)](https://www.apache.org/licenses/LICENSE-2.0.txt)
 [![Java Support](https://img.shields.io/badge/Java-8+-green)](https://openjdk.org/)
