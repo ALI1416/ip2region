@@ -30,14 +30,11 @@ public class Region {
      */
     private String isp;
 
-    /**
-     * 构造函数
-     */
     public Region() {
     }
 
     /**
-     * 构造函数
+     * 构造区域
      *
      * @param region 区域字符串
      */
@@ -86,7 +83,12 @@ public class Region {
 
     @Override
     public String toString() {
-        return "Region{" + "country='" + country + '\'' + ", province='" + province + '\'' + ", city='" + city + '\'' + ", isp='" + isp + '\'' + '}';
+        return "Region{" +
+                "country='" + country + '\'' +
+                ", province='" + province + '\'' +
+                ", city='" + city + '\'' +
+                ", isp='" + isp + '\'' +
+                '}';
     }
 
 }

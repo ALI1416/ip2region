@@ -4,13 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.zip.CRC32;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -54,6 +55,7 @@ public class Ip2Region {
     /**
      * 是否已经初始化
      *
+     * @return 是否已经初始化
      * @since 3.0.0
      */
     public static boolean initialized() {
@@ -69,10 +71,9 @@ public class Ip2Region {
         if (notInstantiated) {
             try {
                 log.info("IP地址转区域初始化：文件路径LOCAL_PATH {}", path);
-                init(new FileInputStream(path));
+                init(Files.newInputStream(Paths.get(path)));
             } catch (Exception e) {
-                log.error("初始化文件异常！", e);
-                throw new Ip2RegionException("初始化文件异常！");
+                throw new Ip2RegionException("初始化文件异常！", e);
             }
         } else {
             log.warn("已经初始化过了，不可重复初始化！");
@@ -80,7 +81,7 @@ public class Ip2Region {
     }
 
     /**
-     * 初始化实例通过URL<br>
+     * 通过URL初始化实例<br>
      * 例如：<code>https://www.404z.cn/files/ip2region/v3.0.0/data/ip2region.zdb</code>
      *
      * @param url URL
@@ -89,10 +90,9 @@ public class Ip2Region {
         if (notInstantiated) {
             try {
                 log.info("IP地址转区域初始化：URL路径URL_PATH {}", url);
-                init(new URL(url).openConnection().getInputStream());
+                init(new URI(url).toURL().openConnection().getInputStream());
             } catch (Exception e) {
-                log.error("初始化URL异常！", e);
-                throw new Ip2RegionException("初始化URL异常！");
+                throw new Ip2RegionException("初始化URL异常！", e);
             }
         } else {
             log.warn("已经初始化过了，不可重复初始化！");
@@ -111,15 +111,14 @@ public class Ip2Region {
                     if (inputStream == null) {
                         throw new Ip2RegionException("数据文件为空！");
                     }
-                    try {
+                    try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
                         // 解压
-                        ZipInputStream zipInputStream = new ZipInputStream(inputStream);
                         ZipEntry entry = zipInputStream.getNextEntry();
                         if (entry == null) {
-                            throw new Ip2RegionException("数据文件异常！");
+                            throw new Ip2RegionException("数据文件为空！");
                         }
                         // 数据
-                        buffer = ByteBuffer.wrap(inputStream2Bytes(zipInputStream)) //
+                        buffer = ByteBuffer.wrap(inputStream2Bytes(zipInputStream))
                                 .asReadOnlyBuffer().order(ByteOrder.LITTLE_ENDIAN);
                         int crc32OriginValue = buffer.getInt();
                         CRC32 crc32 = new CRC32();
@@ -129,15 +128,14 @@ public class Ip2Region {
                         }
                         buffer.position(4);
                         int version = buffer.getInt();
-                        buffer.position(buffer.position() + 4);
+                        buffer.position(12);
                         vector2AreaPtr = buffer.getInt();
                         vectorAreaPtr = buffer.getInt();
                         log.info("数据加载成功：版本号VERSION {} ，校验码CRC32 {}", version,
-                                Integer.toHexString(crc32OriginValue).toUpperCase());
+                                String.format("%08X", crc32OriginValue));
                         notInstantiated = false;
                     } catch (Exception e) {
-                        log.error("初始化异常！", e);
-                        throw new Ip2RegionException("初始化异常！");
+                        throw new Ip2RegionException("初始化异常！", e);
                     } finally {
                         try {
                             inputStream.close();

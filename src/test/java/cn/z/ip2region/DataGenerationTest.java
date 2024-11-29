@@ -8,6 +8,8 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.Collator;
 import java.util.*;
 import java.util.zip.CRC32;
@@ -232,8 +234,13 @@ class DataGenerationTest {
 
         @Override
         public String toString() {
-            return "Record{" + "prt=" + prt + ", bytes=" + new String(bytes) + ", byteLength=" + byteLength + '}';
+            return "Record{" +
+                    "prt=" + prt +
+                    ", bytes=" + Arrays.toString(bytes) +
+                    ", byteLength=" + byteLength +
+                    '}';
         }
+
     }
 
     /**
@@ -361,9 +368,16 @@ class DataGenerationTest {
 
         @Override
         public String toString() {
-            return "Vector{" + "prt=" + prt + ", ipStartFirst=" + ipStartFirst + ", ipStartLast=" + ipStartLast + ", "
-                    + "ipEndFirst=" + ipEndFirst + ", ipEndLast=" + ipEndLast + ", recordHash=" + recordHash + '}';
+            return "Vector{" +
+                    "prt=" + prt +
+                    ", ipStartFirst=" + ipStartFirst +
+                    ", ipStartLast=" + ipStartLast +
+                    ", ipEndFirst=" + ipEndFirst +
+                    ", ipEndLast=" + ipEndLast +
+                    ", recordHash=" + recordHash +
+                    '}';
         }
+
     }
 
     /**
@@ -372,7 +386,7 @@ class DataGenerationTest {
     // @Test
     void test02Compress() throws Exception {
         log.info("---------- 压缩 ---------- 开始");
-        ZipOutputStream zipOutputStream = new ZipOutputStream(new FileOutputStream(zdbPath));
+        ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(Paths.get(zdbPath)));
         zipOutputStream.putNextEntry(new ZipEntry(new File(dbPath).getName()));
         FileInputStream fileInputStream = new FileInputStream(dbPath);
         byte[] buffer = new byte[4096];

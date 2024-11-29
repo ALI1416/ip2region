@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 /**
  * <h1>IP地址转区域测试</h1>
@@ -22,9 +24,9 @@ import java.io.*;
 class Ip2RegionTest {
 
     final String url = "https://www.404z.cn/files/ip2region/v3.0.0/data/ip2region.zdb";
-    final String zdbPath = "E:/ip2region.zdb";
-    final String txtPath = "E:/ip.merge.txt";
-    final String errorPath = "E:/ip2region.error.txt";
+    final String zdbPath = "D:/ip2region.zdb";
+    final String txtPath = "D:/ip.merge.txt";
+    final String errorPath = "D:/ip2region.error.txt";
     final String ip = "123.132.0.0";
 
     /**
@@ -34,7 +36,6 @@ class Ip2RegionTest {
     void test00InitByUrl() {
         log.info("是否已经初始化：{}", Ip2Region.initialized());
         Ip2Region.initByUrl(url);
-        log.info(String.valueOf(Ip2Region.initialized()));
         log.info("是否已经初始化：{}", Ip2Region.initialized());
         log.info(String.valueOf(Ip2Region.parse(ip)));
         // INFO cn.z.ip2region.Ip2RegionTest - 是否已经初始化：false
@@ -60,8 +61,8 @@ class Ip2RegionTest {
      * 通过inputStream初始化
      */
     // @Test
-    void test02InitByInputStream() throws FileNotFoundException {
-        Ip2Region.init(new FileInputStream(zdbPath));
+    void test02InitByInputStream() throws IOException {
+        Ip2Region.init(Files.newInputStream(Paths.get(zdbPath)));
         log.info(String.valueOf(Ip2Region.parse(ip)));
         // INFO cn.z.ip2region.Ip2Region - 数据加载成功：版本号VERSION 20221207 ，校验码CRC32 68EDD841
         // INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
@@ -95,14 +96,13 @@ class Ip2RegionTest {
         // INFO cn.z.ip2region.Ip2Region -- IP地址转区域初始化：文件路径LOCAL_PATH A:/1.txt
         // ERROR cn.z.ip2region.Ip2Region -- 初始化文件异常！
         // java.io.FileNotFoundException: A:\1.txt (系统找不到指定的路径。)
-        // cn.z.ip2region.Ip2RegionException: 初始化文件异常！
         // cn.z.ip2region.Ip2RegionException: 未初始化！
     }
 
     /**
      * 数据错误
      */
-    // @Test
+    @Test
     void test05Error() {
         Ip2Region.initByFile(zdbPath);
         try {

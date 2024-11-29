@@ -22,6 +22,7 @@
 
 ### 其他语言项目
 
+- `.Net` : [ALI1416Ip2Region.Net](https://github.com/ALI1416/Ip2Region.Net)
 - `JavaScript` : [ALI1416/ip2region-js](https://github.com/ALI1416/ip2region-js)
 
 ## 依赖导入
@@ -30,12 +31,12 @@
 <dependency>
   <groupId>cn.404z</groupId>
   <artifactId>ip2region</artifactId>
-  <version>3.2.0</version>
+  <version>3.3.0</version>
 </dependency>
 <dependency>
   <groupId>ch.qos.logback</groupId>
   <artifactId>logback-classic</artifactId>
-  <version>1.4.11</version>
+  <version>1.5.12</version>
 </dependency>
 ```
 
@@ -56,7 +57,6 @@ final String ip = "123.132.0.0";
 ```java
 log.info("是否已经初始化：{}", Ip2Region.initialized());
 Ip2Region.initByUrl(url);
-log.info(String.valueOf(Ip2Region.initialized()));
 log.info("是否已经初始化：{}", Ip2Region.initialized());
 log.info(String.valueOf(Ip2Region.parse(ip)));
 // INFO cn.z.ip2region.Ip2RegionTest - 是否已经初始化：false
@@ -79,7 +79,7 @@ log.info(String.valueOf(Ip2Region.parse(ip)));
 ### 通过inputStream初始化
 
 ```java
-Ip2Region.init(new FileInputStream(zdbPath));
+Ip2Region.init(Files.newInputStream(Paths.get(zdbPath)));
 log.info(String.valueOf(Ip2Region.parse(ip)));
 // INFO cn.z.ip2region.Ip2Region - 数据加载成功：版本号VERSION 20221207 ，校验码CRC32 68EDD841
 // INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
@@ -109,7 +109,6 @@ log.info(String.valueOf(Ip2Region.parse(ip)));
 // INFO cn.z.ip2region.Ip2Region -- IP地址转区域初始化：文件路径LOCAL_PATH A:/1.txt
 // ERROR cn.z.ip2region.Ip2Region -- 初始化文件异常！
 // java.io.FileNotFoundException: A:\1.txt (系统找不到指定的路径。)
-// cn.z.ip2region.Ip2RegionException: 初始化文件异常！
 // cn.z.ip2region.Ip2RegionException: 未初始化！
 ```
 
