@@ -30,9 +30,9 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 class DataGenerationTest {
 
-    final String txtPath = "E:/ip.merge.txt";
-    final String dbPath = "E:/ip2region.db";
-    final String zdbPath = "E:/ip2region.zdb";
+    final String txtPath = "D:/ip.merge.txt";
+    final String dbPath = "D:/ip2region1.db";
+    final String zdbPath = "D:/ip2region1.zdb";
     final int version = 20221207;
 
     /**
@@ -56,7 +56,7 @@ class DataGenerationTest {
         final int headerRecordAreaPtrValue = 20;
         // 头部区 二级索引区指针 值
         int headerVector2AreaPtrValue;
-        // 头部区 索引区指针 值
+        // 头部区 一级索引区指针 值
         int headerVectorAreaPtrValue;
         // 二级索引 个数
         final int vector2Size = 256 * 256 + 1;
@@ -65,13 +65,13 @@ class DataGenerationTest {
         Set<String> recordSet = new TreeSet<>((o1, o2) -> Collator.getInstance(Locale.CHINA).compare(o1, o2));
         // 记录区Map<记录值hash,Record>
         Map<Integer, Record> recordMap = new LinkedHashMap<>();
-        // 索引区List<Vector>
+        // 一级索引区List<Vector>
         List<Vector> vectorList = new ArrayList<>();
 
         /* 读取文件 */
         BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
         String line = bufferedReader.readLine();
-        // 索引附加个数
+        // 一级索引附加个数
         int vectorAddition = 0;
         while (line != null && !line.isEmpty()) {
             // 起始IP地址|结束IP地址|国家|地区|省份|城市|ISP
@@ -93,7 +93,7 @@ class DataGenerationTest {
         }
         bufferedReader.close();
         log.info("记录区数据 {} 条", recordSet.size());
-        log.info("索引区数据 {} 条，其中附加 {} 条", vectorList.size(), vectorAddition);
+        log.info("一级索引区数据 {} 条，其中附加 {} 条", vectorList.size(), vectorAddition);
 
         /* 计算文件大小 */
         // 头部区
@@ -106,16 +106,16 @@ class DataGenerationTest {
             if (length > 256) {
                 throw new Exception("记录值`" + record + "`为" + length + "字节，超出最大限制255字节！");
             }
-            recordMap.put(record.hashCode(), new Record(size, bytes, length));
+            recordMap.put(record.hashCode(), new Record(size, bytes));
             size += (length + 1);
         }
         // 头部区 二级索引区指针 值
         headerVector2AreaPtrValue = size;
-        // 头部区 索引区指针 值
+        // 头部区 一级索引区指针 值
         headerVectorAreaPtrValue = headerVector2AreaPtrValue + vector2Size * 4;
         // 二级索引区
         size += vector2Size * 4;
-        // 索引区
+        // 一级索引区
         size += vectorList.size() * 8;
         log.info("文件容量 {} 字节", size);
 
@@ -125,12 +125,12 @@ class DataGenerationTest {
         buffer.position(headerRecordAreaPtrValue);
         for (Record r : recordMap.values()) {
             // 记录值长度
-            buffer.put((byte) r.getByteLength());
+            buffer.put((byte) r.getBytes().length);
             // 记录值
             buffer.put(r.getBytes());
         }
 
-        // 索引区
+        // 一级索引区
         buffer.position(headerVectorAreaPtrValue);
         for (Vector vector : vectorList) {
             vector.setPrt(buffer.position());
@@ -164,7 +164,7 @@ class DataGenerationTest {
         buffer.putInt(headerRecordAreaPtrValue);
         // 二级索引区指针
         buffer.putInt(headerVector2AreaPtrValue);
-        // 索引区指针
+        // 一级索引区指针
         buffer.putInt(headerVectorAreaPtrValue);
         // CRC32校验和
         buffer.position(4);
@@ -183,6 +183,27 @@ class DataGenerationTest {
     }
 
     /**
+     * 压缩
+     */
+    // @Test
+    void test02Compress() throws Exception {
+        log.info("---------- 压缩 ---------- 开始");
+        ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(Paths.get(zdbPath)));
+        zipOutputStream.putNextEntry(new ZipEntry(new File(dbPath).getName()));
+        FileInputStream fileInputStream = new FileInputStream(dbPath);
+        byte[] buffer = new byte[4096];
+        int n;
+        while (-1 != (n = fileInputStream.read(buffer))) {
+            zipOutputStream.write(buffer, 0, n);
+        }
+        zipOutputStream.flush();
+        fileInputStream.close();
+        zipOutputStream.closeEntry();
+        zipOutputStream.close();
+        log.info("---------- 压缩 ---------- 结束");
+    }
+
+    /**
      * 记录
      */
     static class Record {
@@ -194,18 +215,19 @@ class DataGenerationTest {
          * 记录值
          */
         private byte[] bytes;
-        /**
-         * 记录值长度
-         */
-        private int byteLength;
 
         public Record() {
         }
 
-        public Record(int prt, byte[] bytes, int byteLength) {
+        /**
+         * 构造记录
+         *
+         * @param prt   指针
+         * @param bytes 记录值
+         */
+        public Record(int prt, byte[] bytes) {
             this.prt = prt;
             this.bytes = bytes;
-            this.byteLength = byteLength;
         }
 
         public int getPrt() {
@@ -224,27 +246,18 @@ class DataGenerationTest {
             this.bytes = bytes;
         }
 
-        public int getByteLength() {
-            return byteLength;
-        }
-
-        public void setByteLength(int byteLength) {
-            this.byteLength = byteLength;
-        }
-
         @Override
         public String toString() {
             return "Record{" +
                     "prt=" + prt +
                     ", bytes=" + Arrays.toString(bytes) +
-                    ", byteLength=" + byteLength +
                     '}';
         }
 
     }
 
     /**
-     * 索引
+     * 一级索引
      */
     static class Vector {
         /**
@@ -275,6 +288,13 @@ class DataGenerationTest {
         public Vector() {
         }
 
+        /**
+         * 构造一级索引
+         *
+         * @param ipStart    起始IP
+         * @param ipEnd      结束IP
+         * @param recordHash 记录值hash
+         */
         public Vector(String ipStart, String ipEnd, int recordHash) {
             String[] start = ipStart.split("\\.");
             this.ipStartFirst = (Integer.parseInt(start[0]) << 8) + Integer.parseInt(start[1]);
@@ -378,27 +398,6 @@ class DataGenerationTest {
                     '}';
         }
 
-    }
-
-    /**
-     * 压缩
-     */
-    // @Test
-    void test02Compress() throws Exception {
-        log.info("---------- 压缩 ---------- 开始");
-        ZipOutputStream zipOutputStream = new ZipOutputStream(Files.newOutputStream(Paths.get(zdbPath)));
-        zipOutputStream.putNextEntry(new ZipEntry(new File(dbPath).getName()));
-        FileInputStream fileInputStream = new FileInputStream(dbPath);
-        byte[] buffer = new byte[4096];
-        int n;
-        while (-1 != (n = fileInputStream.read(buffer))) {
-            zipOutputStream.write(buffer, 0, n);
-        }
-        zipOutputStream.flush();
-        fileInputStream.close();
-        zipOutputStream.closeEntry();
-        zipOutputStream.close();
-        log.info("---------- 压缩 ---------- 结束");
     }
 
 }
