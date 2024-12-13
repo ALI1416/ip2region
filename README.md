@@ -31,7 +31,7 @@
 <dependency>
   <groupId>cn.404z</groupId>
   <artifactId>ip2region</artifactId>
-  <version>3.3.0</version>
+  <version>3.3.1</version>
 </dependency>
 <dependency>
   <groupId>ch.qos.logback</groupId>
