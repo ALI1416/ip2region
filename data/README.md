@@ -2,6 +2,15 @@
 
 ## 文件列表
 
+### 版本：`v3.4.0`
+
+- 文件名：`ip2region.zdb`
+  - 版本号：`20250906`
+  - 校验码：`97F72A5F`
+  - 点击下载：[![ip2region.zdb](https://img.shields.io/github/size/ALI1416/ip2region/data/ip2region.zdb?label=ip2region.zdb&color=success&branch=v3.4.0)](https://www.404z.cn/files/ip2region/v3.4.0/data/ip2region.zdb)
+  - 链接地址：`https://www.404z.cn/files/ip2region/v3.4.0/data/ip2region.zdb`
+  - 原始地址：`https://github.com/ALI1416/ip2region/blob/v3.4.0/data/ip2region.zdb`
+
 ### 版本：`v3.0.0`
 
 - 文件名：`ip2region.zdb`
@@ -14,8 +23,8 @@
 ## 数据来源
 
 - 数据文件来源：<https://gitee.com/lionsoul/ip2region>
-- 查看最新版本：<https://gitee.com/lionsoul/ip2region/commits/master/data/ip.merge.txt>
-- 数据文件下载：<https://gitee.com/lionsoul/ip2region/blob/master/data/ip.merge.txt>
+- 查看最新版本：<https://gitee.com/lionsoul/ip2region/commits/master/data/ipv4_source.txt>
+- 数据文件下载：<https://gitee.com/lionsoul/ip2region/blob/master/data/ipv4_source.txt>
 - 数据文件生成方法java程序：[点击查看](../src/test/java/cn/z/ip2region/DataGenerationTest.java)
 
 ## 数据文件设计

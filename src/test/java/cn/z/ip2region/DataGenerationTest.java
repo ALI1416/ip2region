@@ -30,10 +30,10 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 class DataGenerationTest {
 
-    final String txtPath = "D:/ip.merge.txt";
-    final String dbPath = "D:/ip2region1.db";
-    final String zdbPath = "D:/ip2region1.zdb";
-    final int version = 20221207;
+    final String txtPath = "D:/ipv4_source.txt";
+    final String dbPath = "D:/ip2region.db";
+    final String zdbPath = "D:/ip2region.zdb";
+    final int version = 20250906;
 
     /**
      * 数据文件生成
@@ -74,12 +74,12 @@ class DataGenerationTest {
         // 一级索引附加个数
         int vectorAddition = 0;
         while (line != null && !line.isEmpty()) {
-            // 起始IP地址|结束IP地址|国家|地区|省份|城市|ISP
+            // 起始IP地址|结束IP地址|国家|省份|城市|ISP
             String[] s = line.split("\\|");
             String record = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
-                    + ("0".equals(s[4]) ? "" : s[4]) + "|" // 省份
-                    + ("0".equals(s[5]) ? "" : s[5]) + "|" // 城市
-                    + ("0".equals(s[6]) ? "" : s[6]); // ISP
+                    + ("0".equals(s[3]) ? "" : s[3]) + "|" // 省份
+                    + ("0".equals(s[4]) ? "" : s[4]) + "|" // 城市
+                    + ("0".equals(s[5]) ? "" : s[5]); // ISP
             recordSet.add(record);
             Vector vector = new Vector(s[0], s[1], record.hashCode());
             Vector vector2 = vector.separation();

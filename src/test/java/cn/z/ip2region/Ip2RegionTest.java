@@ -25,7 +25,7 @@ class Ip2RegionTest {
 
     final String url = "https://www.404z.cn/files/ip2region/v3.0.0/data/ip2region.zdb";
     final String zdbPath = "D:/ip2region.zdb";
-    final String txtPath = "D:/ip.merge.txt";
+    final String txtPath = "D:/ipv4_source.txt";
     final String errorPath = "D:/ip2region.error.txt";
     final String ip = "123.132.0.0";
 
@@ -71,7 +71,7 @@ class Ip2RegionTest {
     /**
      * 初始化多次
      */
-    // @Test
+    @Test
     void test03InitMore() {
         Ip2Region.initByFile(zdbPath);
         Ip2Region.initByFile(zdbPath);
@@ -153,12 +153,12 @@ class Ip2RegionTest {
         BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
         String line = bufferedReader.readLine();
         while (line != null && !line.isEmpty()) {
-            // 起始IP地址|结束IP地址|国家|地区|省份|城市|ISP
+            // 起始IP地址|结束IP地址|国家|省份|城市|ISP
             String[] s = line.split("\\|");
             String region = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
-                    + ("0".equals(s[4]) ? "" : s[4]) + "|" // 省份
-                    + ("0".equals(s[5]) ? "" : s[5]) + "|" // 城市
-                    + ("0".equals(s[6]) ? "" : s[6]); // ISP
+                    + ("0".equals(s[3]) ? "" : s[3]) + "|" // 省份
+                    + ("0".equals(s[4]) ? "" : s[4]) + "|" // 城市
+                    + ("0".equals(s[5]) ? "" : s[5]); // ISP
             int hash = (new Region(region)).toString().hashCode();
             long ipStart = Ip2Region.ip2long(s[0]);
             long ipEnd = Ip2Region.ip2long(s[1]) + 1;
