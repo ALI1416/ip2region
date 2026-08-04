@@ -47,8 +47,6 @@
 ```java
 final String url = "https://www.404z.cn/files/ip2region/v3.0.0/data/ip2region.zdb";
 final String zdbPath = "E:/ip2region.zdb";
-final String txtPath = "E:/ip.merge.txt";
-final String errorPath = "E:/ip2region.error.txt";
 final String ip = "123.132.0.0";
 ```
 
@@ -147,54 +145,6 @@ log.info("查询 {} 条数据，用时 {} 毫秒", 0x100000000L, endTime - start
 // INFO cn.z.ip2region.Ip2Region -- 数据加载成功：版本号VERSION 20221207 ，校验码CRC32 68EDD841
 // INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
 // INFO cn.z.ip2region.Ip2RegionTest - 查询 4294967296 条数据，用时 562161 毫秒
-```
-
-### 完整性测试
-
-```java
-Ip2Region.initByFile(zdbPath);
-log.info(String.valueOf(Ip2Region.parse(ip)));
-long startTime = System.currentTimeMillis();
-int errorCount = 0;
-BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(errorPath));
-BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
-String line = bufferedReader.readLine();
-while (line != null && !line.isEmpty()) {
-    // 起始IP地址|结束IP地址|国家|地区|省份|城市|ISP
-    String[] s = line.split("\\|");
-    String region = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
-            + ("0".equals(s[4]) ? "" : s[4]) + "|" // 省份
-            + ("0".equals(s[5]) ? "" : s[5]) + "|" // 城市
-            + ("0".equals(s[6]) ? "" : s[6]); // ISP
-    int hash = (new Region(region)).toString().hashCode();
-    long ipStart = Ip2Region.ip2long(s[0]);
-    long ipEnd = Ip2Region.ip2long(s[1]) + 1;
-    for (long i = ipStart; i < ipEnd; i++) {
-        if (hash != Ip2Region.parse(i).toString().hashCode()) {
-            String error = "解析记录`" + line + "`时发现IP地址`" + Ip2Region.long2ip(i) //
-                    + "`解析错误，实际为`" + Ip2Region.parse(i) + "`";
-            errorCount++;
-            log.error(error);
-            bufferedWriter.write(error + "\n");
-        }
-    }
-    log.info("解析记录`{}`，共 {} 条", line, ipEnd - ipStart);
-    line = bufferedReader.readLine();
-}
-bufferedReader.close();
-bufferedWriter.flush();
-bufferedWriter.close();
-long endTime = System.currentTimeMillis();
-log.info("解析 {} 条数据，错误 {} 条，用时 {} 毫秒", 0x100000000L, errorCount, endTime - startTime);
-// INFO cn.z.ip2region.Ip2Region -- IP地址转区域初始化：文件路径LOCAL_PATH E:/ip2region.zdb
-// INFO cn.z.ip2region.Ip2Region -- 数据加载成功：版本号VERSION 20221207 ，校验码CRC32 68EDD841
-// INFO cn.z.ip2region.Ip2RegionTest - Region{country='中国', province='山东省', city='济宁市', isp='联通'}
-// INFO cn.z.ip2region.Ip2RegionTest - 解析记录`0.0.0.0|0.255.255.255|0|0|0|内网IP|内网IP`，共 16777216 条
-// INFO cn.z.ip2region.Ip2RegionTest - 解析记录`1.0.0.0|1.0.0.255|澳大利亚|0|0|0|0`，共 256 条
-// ...
-// INFO cn.z.ip2region.Ip2RegionTest - 解析记录`223.255.255.0|223.255.255.255|澳大利亚|0|0|0|0`，共 256 条
-// INFO cn.z.ip2region.Ip2RegionTest - 解析记录`224.0.0.0|255.255.255.255|0|0|0|内网IP|内网IP`，共 536870912 条
-// INFO cn.z.ip2region.Ip2RegionTest - 解析 4294967296 条数据，错误 0 条，用时 869132 毫秒
 ```
 
 ### 工具测试

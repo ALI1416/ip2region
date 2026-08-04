@@ -30,10 +30,12 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 class DataGenerationTest {
 
-    final String txtPath = "D:/ipv4_source.txt";
-    final String dbPath = "D:/ip2region.db";
-    final String zdbPath = "D:/ip2region.zdb";
-    final int version = 20250906;
+    final String txtPath = "E:/ipv4_source.txt";
+    final String dbPath = "E:/ip2region.db";
+    final String zdbPath = "E:/ip2region.zdb";
+    final int version = 20260709;
+    final String ip = "123.132.0.0";
+    final String errorPath = "E:/ip2region.error.txt";
 
     /**
      * 数据文件生成
@@ -64,7 +66,7 @@ class DataGenerationTest {
         // 记录区Set
         Set<String> recordSet = new TreeSet<>((o1, o2) -> Collator.getInstance(Locale.CHINA).compare(o1, o2));
         // 记录区Map<记录值hash,Record>
-        Map<Integer, Record> recordMap = new LinkedHashMap<>();
+        Map<Long, Record> recordMap = new LinkedHashMap<>();
         // 一级索引区List<Vector>
         List<Vector> vectorList = new ArrayList<>();
 
@@ -76,12 +78,12 @@ class DataGenerationTest {
         while (line != null && !line.isEmpty()) {
             // 起始IP地址|结束IP地址|国家|省份|城市|ISP
             String[] s = line.split("\\|");
-            String record = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
+            String recordValue = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
                     + ("0".equals(s[3]) ? "" : s[3]) + "|" // 省份
                     + ("0".equals(s[4]) ? "" : s[4]) + "|" // 城市
-                    + ("0".equals(s[5]) ? "" : s[5]); // ISP
-            recordSet.add(record);
-            Vector vector = new Vector(s[0], s[1], record.hashCode());
+                    + ("0".equals(s[5]) ? "" : unifyIsp(s[5])); // ISP
+            recordSet.add(recordValue);
+            Vector vector = new Vector(s[0], s[1], hashCode(recordValue));
             Vector vector2 = vector.separation();
             vectorList.add(vector);
             if (vector2 != null) {
@@ -99,16 +101,21 @@ class DataGenerationTest {
         // 头部区
         int size = headerRecordAreaPtrValue;
         // 记录区
-        for (String record : recordSet) {
+        for (String recordValue : recordSet) {
             // java的String为UTF16LE是变长4字节，而UTF8是变长3字节
-            byte[] bytes = record.getBytes(StandardCharsets.UTF_8);
+            byte[] bytes = recordValue.getBytes(StandardCharsets.UTF_8);
             int length = bytes.length;
             if (length > 256) {
-                throw new Exception("记录值`" + record + "`为" + length + "字节，超出最大限制255字节！");
+                throw new Exception("记录值`" + recordValue + "`为" + length + "字节，超出最大限制255字节！");
             }
-            recordMap.put(record.hashCode(), new Record(size, bytes));
+            recordMap.put(hashCode(recordValue), new Record(size, bytes));
             size += (length + 1);
         }
+        log.info("记录区核对数据 {} 条", recordMap.size());
+        if (recordSet.size() != recordMap.size()) {
+            throw new Exception("记录区数据hash冲突！请修改hash算法");
+        }
+
         // 头部区 二级索引区指针 值
         headerVector2AreaPtrValue = size;
         // 头部区 一级索引区指针 值
@@ -183,6 +190,52 @@ class DataGenerationTest {
     }
 
     /**
+     * hashcode
+     *
+     * @param s 字符串
+     * @return hashcode
+     */
+    static long hashCode(String s) {
+        if (s == null) return 0L;
+        long h = 0;
+        char[] chars = s.toCharArray();
+        for (char c : chars) {
+            h = 31L * h + c;
+        }
+        return h;
+    }
+
+    /**
+     * 统一ISP
+     *
+     * @param isp ISP
+     * @return 统一ISP
+     */
+    static String unifyIsp(String isp) {
+        switch (isp) {
+            case "移动":
+            case "中国移动": {
+                return "移动";
+            }
+            case "联通":
+            case "中国联通": {
+                return "联通";
+            }
+            case "电信":
+            case "中国电信": {
+                return "电信";
+            }
+            case "广电":
+            case "中国广电": {
+                return "广电";
+            }
+            default: {
+                return isp;
+            }
+        }
+    }
+
+    /**
      * 压缩
      */
     // @Test
@@ -212,7 +265,7 @@ class DataGenerationTest {
          */
         private int prt;
         /**
-         * 记录值
+         * 记录值bytes
          */
         private byte[] bytes;
 
@@ -223,7 +276,7 @@ class DataGenerationTest {
          * 构造记录
          *
          * @param prt   指针
-         * @param bytes 记录值
+         * @param bytes 记录值bytes
          */
         public Record(int prt, byte[] bytes) {
             this.prt = prt;
@@ -283,7 +336,7 @@ class DataGenerationTest {
         /**
          * 记录值hash
          */
-        private int recordHash;
+        private long recordHash;
 
         public Vector() {
         }
@@ -295,7 +348,7 @@ class DataGenerationTest {
          * @param ipEnd      结束IP
          * @param recordHash 记录值hash
          */
-        public Vector(String ipStart, String ipEnd, int recordHash) {
+        public Vector(String ipStart, String ipEnd, long recordHash) {
             String[] start = ipStart.split("\\.");
             this.ipStartFirst = (Integer.parseInt(start[0]) << 8) + Integer.parseInt(start[1]);
             this.ipStartLast = (Integer.parseInt(start[2]) << 8) + Integer.parseInt(start[3]);
@@ -378,11 +431,11 @@ class DataGenerationTest {
             this.ipEndLast = ipEndLast;
         }
 
-        public int getRecordHash() {
+        public long getRecordHash() {
             return recordHash;
         }
 
-        public void setRecordHash(int recordHash) {
+        public void setRecordHash(long recordHash) {
             this.recordHash = recordHash;
         }
 
@@ -398,6 +451,47 @@ class DataGenerationTest {
                     '}';
         }
 
+    }
+
+    /**
+     * 完整性测试
+     */
+    // @Test
+    void test03IntegrityTest() throws Exception {
+        Ip2Region.initByFile(zdbPath);
+        log.info(String.valueOf(Ip2Region.parse(ip)));
+        long startTime = System.currentTimeMillis();
+        int errorCount = 0;
+        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(errorPath));
+        BufferedReader bufferedReader = new BufferedReader(new FileReader(txtPath));
+        String line = bufferedReader.readLine();
+        while (line != null && !line.isEmpty()) {
+            // 起始IP地址|结束IP地址|国家|省份|城市|ISP
+            String[] s = line.split("\\|");
+            String region = ("0".equals(s[2]) ? "" : s[2]) + "|" // 国家
+                    + ("0".equals(s[3]) ? "" : s[3]) + "|" // 省份
+                    + ("0".equals(s[4]) ? "" : s[4]) + "|" // 城市
+                    + ("0".equals(s[5]) ? "" : unifyIsp(s[5])); // ISP
+            long hash = hashCode((new Region(region)).toString());
+            long ipStart = Ip2Region.ip2long(s[0]);
+            long ipEnd = Ip2Region.ip2long(s[1]) + 1;
+            for (long i = ipStart; i < ipEnd; i++) {
+                if (hash != hashCode(Ip2Region.parse(i).toString())) {
+                    String error = "解析记录`" + line + "`时发现IP地址`" + Ip2Region.long2ip(i) //
+                            + "`解析错误，实际为`" + Ip2Region.parse(i) + "`";
+                    errorCount++;
+                    log.error(error);
+                    bufferedWriter.write(error + "\n");
+                }
+            }
+            log.info("解析记录`{}`，共 {} 条", line, ipEnd - ipStart);
+            line = bufferedReader.readLine();
+        }
+        bufferedReader.close();
+        bufferedWriter.flush();
+        bufferedWriter.close();
+        long endTime = System.currentTimeMillis();
+        log.info("解析 {} 条数据，错误 {} 条，用时 {} 毫秒", 0x100000000L, errorCount, endTime - startTime);
     }
 
 }

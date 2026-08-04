@@ -2,6 +2,15 @@
 
 ## 文件列表
 
+### 版本：`v3.5.0`
+
+- 文件名：`ip2region.zdb`
+  - 版本号：`20260709`
+  - 校验码：`BAEDD594`
+  - 点击下载：[![ip2region.zdb](https://img.shields.io/github/size/ALI1416/ip2region/data/ip2region.zdb?label=ip2region.zdb&color=success&branch=v3.5.0)](https://www.404z.cn/files/ip2region/v3.5.0/data/ip2region.zdb)
+  - 链接地址：`https://www.404z.cn/files/ip2region/v3.5.0/data/ip2region.zdb`
+  - 原始地址：`https://github.com/ALI1416/ip2region/blob/v3.5.0/data/ip2region.zdb`
+
 ### 版本：`v3.4.0`
 
 - 文件名：`ip2region.zdb`
